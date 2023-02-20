@@ -1,40 +1,4 @@
-#include "oozle/include/stdafx.h"
-
-struct BitknitLiteral
-{
-    u_int16_t lookup[512 + 4];
-    u_int16_t a[300 + 1];
-    u_int16_t freq[300];
-    u_int32_t adapt_interval;
-};
-
-struct BitknitDistanceLsb
-{
-    u_int16_t lookup[64 + 4];
-    u_int16_t a[40 + 1];
-    u_int16_t freq[40];
-    u_int32_t adapt_interval;
-};
-
-struct BitknitDistanceBits
-{
-    u_int16_t lookup[64 + 4];
-    u_int16_t a[21 + 1];
-    u_int16_t freq[21];
-    u_int32_t adapt_interval;
-};
-
-struct BitknitState
-{
-    u_int32_t recent_dist[8];
-    u_int32_t last_match_dist;
-    u_int32_t recent_dist_mask;
-    u_int32_t bits, bits2;
-
-    BitknitLiteral literals[4];
-    BitknitDistanceLsb distance_lsb[4];
-    BitknitDistanceBits distance_bits;
-};
+#include "oozle/include/bitknit.h"
 
 void BitknitLiteral_Init(BitknitLiteral *model)
 {
