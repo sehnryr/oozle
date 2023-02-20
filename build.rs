@@ -13,5 +13,6 @@ fn main() {
 
     println!("cargo:rerun-if-changed=include/stdafx.h");
     println!("cargo:rerun-if-changed=include/lzna.h");
+    println!("cargo:rerun-if-changed=include/bitknit.h");
     println!("cargo:rerun-if-changed=include/kraken.h");
 }
