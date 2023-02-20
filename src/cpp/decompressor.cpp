@@ -1,4 +1,4 @@
-#include "oozle/include/kraken.h"
+#include "oozle/include/decompressor.h"
 
 // Allocate memory with a specific alignment
 void *MallocAligned(size_t size, size_t alignment)
