@@ -4,6 +4,7 @@
 #include "lzna.h"
 #include "bitknit.h"
 #include "mermaid.h"
+#include "leviathan.h"
 
 #define ALIGN_POINTER(p, align) ((u_int8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
 #define ALIGN_16(x) (((x) + 15) & ~15)
@@ -165,21 +166,6 @@ struct TansDecoderParams
     u_int32_t bits_f, bits_b;
     int32_t bitpos_f, bitpos_b;
     u_int32_t state_0, state_1, state_2, state_3, state_4;
-};
-
-struct LeviathanLzTable
-{
-    int32_t *offs_stream;
-    int32_t offs_stream_size;
-    int32_t *len_stream;
-    int32_t len_stream_size;
-    u_int8_t *lit_stream[16];
-    int32_t lit_stream_size[16];
-    int32_t lit_stream_total;
-    u_int8_t *multi_cmd_ptr[8];
-    u_int8_t *multi_cmd_end[8];
-    u_int8_t *cmd_stream;
-    int32_t cmd_stream_size;
 };
 
 static const u_int32_t kRiceCodeBits2Value[256] = {
@@ -427,38 +413,6 @@ bool Kraken_ProcessLzRuns(
     int32_t offset,
     KrakenLzTable *lztable);
 int32_t Kraken_DecodeQuantum(
-    u_int8_t *dst,
-    u_int8_t *dst_end,
-    u_int8_t *dst_start,
-    const u_int8_t *src,
-    const u_int8_t *src_end,
-    u_int8_t *scratch,
-    u_int8_t *scratch_end);
-
-bool Leviathan_ReadLzTable(
-    int32_t chunk_type,
-    const u_int8_t *src,
-    const u_int8_t *src_end,
-    u_int8_t *dst,
-    int32_t dst_size,
-    int32_t offset,
-    u_int8_t *scratch,
-    u_int8_t *scratch_end,
-    LeviathanLzTable *lztable);
-template <typename Mode, bool MultiCmd>
-bool Leviathan_ProcessLz(
-    LeviathanLzTable *lzt,
-    u_int8_t *dst,
-    u_int8_t *dst_start,
-    u_int8_t *dst_end,
-    u_int8_t *window_base);
-bool Leviathan_ProcessLzRuns(
-    int32_t chunk_type,
-    u_int8_t *dst,
-    int32_t dst_size,
-    int32_t offset,
-    LeviathanLzTable *lzt);
-int32_t Leviathan_DecodeQuantum(
     u_int8_t *dst,
     u_int8_t *dst_end,
     u_int8_t *dst_start,
