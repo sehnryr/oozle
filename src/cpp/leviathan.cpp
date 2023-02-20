@@ -30,7 +30,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
     {
         // Decode packed offset stream, it's bounded by the command length.
         packed_offs_stream = scratch;
-        n = Kraken_DecodeBytes(&packed_offs_stream, src, src_end, &lztable->offs_stream_size,
+        n = Oozle_DecodeBytes(&packed_offs_stream, src, src_end, &lztable->offs_stream_size,
                                MIN(scratch_end - scratch, offs_stream_limit), false, scratch, scratch_end);
         if (n < 0)
             return false;
@@ -45,7 +45,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
         src++;
 
         packed_offs_stream = scratch;
-        n = Kraken_DecodeBytes(&packed_offs_stream, src, src_end, &lztable->offs_stream_size,
+        n = Oozle_DecodeBytes(&packed_offs_stream, src, src_end, &lztable->offs_stream_size,
                                MIN(scratch_end - scratch, offs_stream_limit), false, scratch, scratch_end);
         if (n < 0)
             return false;
@@ -55,7 +55,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
         if (offs_scaling != 1)
         {
             packed_offs_stream_extra = scratch;
-            n = Kraken_DecodeBytes(&packed_offs_stream_extra, src, src_end, &decode_count,
+            n = Oozle_DecodeBytes(&packed_offs_stream_extra, src, src_end, &decode_count,
                                    MIN(scratch_end - scratch, offs_stream_limit), false, scratch, scratch_end);
             if (n < 0 || decode_count != lztable->offs_stream_size)
                 return false;
@@ -66,7 +66,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
 
     // Decode packed litlen stream. It's bounded by 1/5 of dst_size.
     packed_len_stream = scratch;
-    n = Kraken_DecodeBytes(&packed_len_stream, src, src_end, &lztable->len_stream_size,
+    n = Oozle_DecodeBytes(&packed_len_stream, src, src_end, &lztable->len_stream_size,
                            MIN(scratch_end - scratch, dst_size / 5), false, scratch, scratch_end);
     if (n < 0)
         return false;
@@ -90,7 +90,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
     {
         // Decode lit stream, bounded by dst_size
         out = scratch;
-        n = Kraken_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size),
+        n = Oozle_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size),
                                true, scratch, scratch_end);
         if (n < 0)
             return false;
@@ -102,7 +102,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
     {
         int32_t array_count = (chunk_type == 2) ? 2 : (chunk_type == 3) ? 4
                                                                         : 16;
-        n = Kraken_DecodeMultiArray(src, src_end, scratch, scratch_end, lztable->lit_stream,
+        n = Oozle_DecodeMultiArray(src, src_end, scratch, scratch_end, lztable->lit_stream,
                                     lztable->lit_stream_size, array_count, &decode_count,
                                     true, scratch, scratch_end);
         if (n < 0)
@@ -119,7 +119,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
     {
         // Decode command stream, bounded by dst_size
         out = scratch;
-        n = Kraken_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size),
+        n = Oozle_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size),
                                true, scratch, scratch_end);
         if (n < 0)
             return false;
@@ -134,7 +134,7 @@ bool Leviathan_ReadLzTable(int32_t chunk_type,
             return false;
         src++;
         int32_t multi_cmd_lens[8];
-        n = Kraken_DecodeMultiArray(src, src_end, scratch, scratch_end, lztable->multi_cmd_ptr,
+        n = Oozle_DecodeMultiArray(src, src_end, scratch, scratch_end, lztable->multi_cmd_ptr,
                                     multi_cmd_lens, 8, &decode_count, true, scratch, scratch_end);
         if (n < 0)
             return false;
@@ -722,7 +722,7 @@ int32_t Leviathan_DecodeQuantum(u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_
         {
             // Stored as entropy without any match copying.
             u_int8_t *out = dst;
-            src_used = Kraken_DecodeBytes(&out, src, src_end, &written_bytes, dst_count, false, scratch, scratch_end);
+            src_used = Oozle_DecodeBytes(&out, src, src_end, &written_bytes, dst_count, false, scratch, scratch_end);
             if (src_used < 0 || written_bytes != dst_count)
                 return -1;
         }
