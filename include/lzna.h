@@ -112,25 +112,20 @@ static const u_int8_t next_state_lit[12] = {
     0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 4, 5};
 
 void LZNA_InitLookup(LznaState *lut);
-int LZNA_DecodeQuantum(
-    u_int8_t *dst,
-    u_int8_t *dst_end,
-    u_int8_t *dst_start,
-    const u_int8_t *src_in,
-    const u_int8_t *src_end,
-    LznaState *lut);
 
 static void LznaNibbleModel_Init(LznaNibbleModel *d);
-static void LznaNibbleModel_InitN(LznaNibbleModel *d, int32_t n);
 static void Lzna3bitModel_Init(Lzna3bitModel *d);
-static void LznaLiteralModel_InitN(LznaLiteralModel *d, int32_t n);
-static void LznaShortLengthRecentModel_InitN(LznaShortLengthRecentModel *d, int32_t n);
 static void LznaNearDistModel_Init(LznaNearDistModel *d, int32_t n);
 static void LznaLowBitsDistanceModel_Init(LznaLowBitsDistanceModel *d, int32_t n);
 static void LznaFarDistModel_Init(LznaFarDistModel *d);
 static void LznaBitReader_Init(LznaBitReader *tab, const u_int8_t *src);
 
+static void LznaNibbleModel_InitN(LznaNibbleModel *d, int32_t n);
+static void LznaLiteralModel_InitN(LznaLiteralModel *d, int32_t n);
+static void LznaShortLengthRecentModel_InitN(LznaShortLengthRecentModel *d, int32_t n);
+
 static void __forceinline LznaRenormalize(LznaBitReader *tab);
+
 static u_int32_t __forceinline LznaReadBit(LznaBitReader *tab);
 static u_int32_t __forceinline LznaReadNBits(LznaBitReader *tab, int32_t bits);
 static u_int32_t __forceinline LznaReadNibble(LznaBitReader *tab, LznaNibbleModel *model);
@@ -144,3 +139,11 @@ static void LznaCopyLongDist(u_int8_t *dst, size_t dist, size_t length);
 static void LznaCopyShortDist(u_int8_t *dst, size_t dist, size_t length);
 static void LznaCopy4to12(u_int8_t *dst, size_t dist, size_t length);
 static void LznaPreprocessMatchHistory(LznaState *lut);
+
+int LZNA_DecodeQuantum(
+    u_int8_t *dst,
+    u_int8_t *dst_end,
+    u_int8_t *dst_start,
+    const u_int8_t *src_in,
+    const u_int8_t *src_end,
+    LznaState *lut);
