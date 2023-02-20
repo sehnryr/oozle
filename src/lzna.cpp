@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "oozle/include/stdafx.h"
 
 typedef u_int16_t LznaBitModel;
 

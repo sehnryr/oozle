@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "oozle/include/kraken.h"
 
 // Header in front of each 256k block
 typedef struct KrakenHeader
@@ -4651,7 +4651,7 @@ bool Kraken_DecodeStep(struct KrakenDecoder *dec,
     return true;
 }
 
-extern "C" int32_t Kraken_Decompress(
+int32_t Kraken_Decompress(
     const u_int8_t *src,
     size_t src_len,
     u_int8_t *dst,
