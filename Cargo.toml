@@ -1,0 +1,18 @@
+[package]
+name = "oozle"
+version = "0.1.0"
+edition = "2021"
+authors = ["Youn Mélois <youn@melois.dev>"]
+repository = "https://github.com/sehnryr/oozle"
+homepage = "https://github.com/sehnryr/oozle"
+description = "Open source Kraken, Mermaid, Selkie, Leviathan, LZNA, Bitknit decompressor"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cxx = "1.0"
+
+[build-dependencies]
+cxx-build = "1.0"
