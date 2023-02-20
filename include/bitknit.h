@@ -51,9 +51,6 @@ u_int32_t BitknitLiteral_Lookup(BitknitLiteral *model, u_int32_t *bits);
 u_int32_t BitknitDistanceLsb_Lookup(BitknitDistanceLsb *model, u_int32_t *bits);
 u_int32_t BitknitDistanceBits_Lookup(BitknitDistanceBits *model, u_int32_t *bits);
 
-static void BitknitCopyLongDist(u_int8_t *dst, size_t dist, size_t length);
-static void BitknitCopyShortDist(u_int8_t *dst, size_t dist, size_t length);
-
 size_t Bitknit_Decode(
     const u_int8_t *src,
     const u_int8_t *src_end,

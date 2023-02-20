@@ -340,8 +340,6 @@ const u_int8_t *LZNA_ParseQuantumHeader(
 
 u_int32_t Kraken_GetCrc(const u_int8_t *p, size_t p_size);
 
-static void ReverseBitsArray2048(const u_int8_t *input, u_int8_t *output);
-
 bool Kraken_DecodeBytesCore(HuffReader *hr, HuffRevLut *lut);
 
 int32_t Huff_ReadCodeLengthsOld(
