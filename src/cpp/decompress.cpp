@@ -1,23 +1,5 @@
 #include "oozle/include/decompress.h"
 
-// Allocate memory with a specific alignment
-void *MallocAligned(size_t size, size_t alignment)
-{
-    void *x = malloc(size + (alignment - 1) + sizeof(void *)), *x_org = x;
-    if (x)
-    {
-        x = (void *)(((intptr_t)x + alignment - 1 + sizeof(void *)) & ~(alignment - 1));
-        ((void **)x)[-1] = x_org;
-    }
-    return x;
-}
-
-// Free memory allocated through |MallocAligned|
-void FreeAligned(void *p)
-{
-    free(((void **)p)[-1]);
-}
-
 u_int32_t BSR(u_int32_t x)
 {
     unsigned long index;
@@ -300,7 +282,7 @@ OozleDecoder *OozleDecoderCreate()
 {
     size_t scratch_size = 0x6C000;
     size_t memory_needed = sizeof(OozleDecoder) + scratch_size;
-    OozleDecoder *dec = (OozleDecoder *)MallocAligned(memory_needed, 16);
+    OozleDecoder *dec = (OozleDecoder *)malloc(memory_needed);
     memset(dec, 0, sizeof(OozleDecoder));
     dec->scratch_size = scratch_size;
     dec->scratch = (u_int8_t *)(dec + 1);
@@ -309,7 +291,7 @@ OozleDecoder *OozleDecoderCreate()
 
 void OozleDecoderDestroy(OozleDecoder *decoder)
 {
-    FreeAligned(decoder);
+    free(decoder);
 }
 
 const u_int8_t *Oozle_ParseHeader(OozleHeader *hdr, const u_int8_t *p)
