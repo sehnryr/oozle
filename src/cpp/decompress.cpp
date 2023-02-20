@@ -1,4 +1,4 @@
-#include "oozle/include/decompressor.h"
+#include "oozle/include/decompress.h"
 
 // Allocate memory with a specific alignment
 void *MallocAligned(size_t size, size_t alignment)

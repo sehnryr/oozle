@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "decompressor.h"
+#include "decompress.h"
 
 // Mermaid/Selkie decompression also happens in two phases, just like in Kraken,
 // but the match copier works differently.
