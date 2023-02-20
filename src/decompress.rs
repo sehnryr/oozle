@@ -1,4 +1,4 @@
-pub use crate::ffi::Kraken_Decompress;
+use crate::ffi;
 
 /// Decompresses a Kraken, Mermaid, Selkie, Leviathan, LZNA or Bitknit
 /// compressed buffer.
