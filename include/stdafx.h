@@ -8,6 +8,9 @@
 
 #define assert(x) (void)0
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 inline u_int16_t _byteswap_ushort(u_int16_t i)
 {
     u_int16_t j;
