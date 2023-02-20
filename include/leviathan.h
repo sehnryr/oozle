@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "kraken.h"
+#include "decompressor.h"
 
 struct LeviathanLzTable
 {
