@@ -13,7 +13,7 @@ mod ffi {
     unsafe extern "C++" {
         include!("oozle/include/decompress.h");
 
-        unsafe fn Kraken_Decompress(
+        unsafe fn Oozle_Decompress(
             src: *const u8,
             src_len: usize,
             dst: *mut u8,

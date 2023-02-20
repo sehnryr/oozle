@@ -71,7 +71,7 @@ bool Mermaid_ReadLzTable(int32_t mode,
 
     // Decode lit stream
     out = scratch;
-    n = Kraken_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size), false, scratch, scratch_end);
+    n = Oozle_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size), false, scratch, scratch_end);
     if (n < 0)
         return false;
     src += n;
@@ -81,7 +81,7 @@ bool Mermaid_ReadLzTable(int32_t mode,
 
     // Decode flag stream
     out = scratch;
-    n = Kraken_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size), false, scratch, scratch_end);
+    n = Oozle_DecodeBytes(&out, src, src_end, &decode_count, MIN(scratch_end - scratch, dst_size), false, scratch, scratch_end);
     if (n < 0)
         return false;
     src += n;
@@ -115,14 +115,14 @@ bool Mermaid_ReadLzTable(int32_t mode,
         int32_t off16_lo_count, off16_hi_count;
         src += 2;
         off16_hi = scratch;
-        n = Kraken_DecodeBytes(&off16_hi, src, src_end, &off16_hi_count, MIN(scratch_end - scratch, dst_size >> 1), false, scratch, scratch_end);
+        n = Oozle_DecodeBytes(&off16_hi, src, src_end, &off16_hi_count, MIN(scratch_end - scratch, dst_size >> 1), false, scratch, scratch_end);
         if (n < 0)
             return false;
         src += n;
         scratch += off16_hi_count;
 
         off16_lo = scratch;
-        n = Kraken_DecodeBytes(&off16_lo, src, src_end, &off16_lo_count, MIN(scratch_end - scratch, dst_size >> 1), false, scratch, scratch_end);
+        n = Oozle_DecodeBytes(&off16_lo, src, src_end, &off16_lo_count, MIN(scratch_end - scratch, dst_size >> 1), false, scratch, scratch_end);
         if (n < 0)
             return false;
         src += n;
@@ -645,7 +645,7 @@ int32_t Mermaid_DecodeQuantum(u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_st
         {
             // Stored without any match copying.
             u_int8_t *out = dst;
-            src_used = Kraken_DecodeBytes(&out, src, src_end, &written_bytes, dst_count, false, temp, temp_end);
+            src_used = Oozle_DecodeBytes(&out, src, src_end, &written_bytes, dst_count, false, temp, temp_end);
             if (src_used < 0 || written_bytes != dst_count)
                 return -1;
         }

@@ -13,7 +13,7 @@ use crate::ffi;
 /// * `Ok(len)` - The length of the decompressed buffer.
 /// * `Err(())` - The decompression failed.
 pub unsafe fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize, ()> {
-    let len = ffi::Kraken_Decompress(
+    let len = ffi::Oozle_Decompress(
         src.as_ptr(), 
         src.len(), 
         dst.as_mut_ptr(), 

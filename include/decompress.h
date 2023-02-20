@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "lzna.h"
 #include "bitknit.h"
+#include "kraken.h"
 #include "mermaid.h"
 #include "leviathan.h"
 
@@ -24,7 +25,7 @@
 #define finline __forceinline
 
 // Header in front of each 256k block
-typedef struct KrakenHeader
+typedef struct OozleHeader
 {
     // Type of decoder used, 6 means kraken
     u_int32_t decoder_type;
@@ -37,10 +38,10 @@ typedef struct KrakenHeader
 
     // Whether this block uses checksums.
     bool use_checksums;
-} KrakenHeader;
+} OozleHeader;
 
 // Additional header in front of each 256k block ("quantum").
-typedef struct KrakenQuantumHeader
+typedef struct OozleQuantumHeader
 {
     // The compressed size of this quantum. If this value is 0 it means
     // the quantum is a special quantum such as memset.
@@ -52,36 +53,9 @@ typedef struct KrakenQuantumHeader
     u_int8_t flag2;
     // Whether the whole block matched a previous block
     u_int32_t whole_match_distance;
-} KrakenQuantumHeader;
+} OozleQuantumHeader;
 
-// Kraken decompression happens in two phases, first one decodes
-// all the literals and copy lengths using huffman and second
-// phase runs the copy loop. This holds the tables needed by stage 2.
-typedef struct KrakenLzTable
-{
-    // Stream of (literal, match) pairs. The flag u_int8_t contains
-    // the length of the match, the length of the literal and whether
-    // to use a recent offset.
-    u_int8_t *cmd_stream;
-    int32_t cmd_stream_size;
-
-    // Holds the actual distances in case we're not using a recent
-    // offset.
-    int32_t *offs_stream;
-    int32_t offs_stream_size;
-
-    // Holds the sequence of literals. All literal copying happens from
-    // here.
-    u_int8_t *lit_stream;
-    int32_t lit_stream_size;
-
-    // Holds the lengths that do not fit in the flag stream. Both literal
-    // lengths and match length are stored in the same array.
-    int32_t *len_stream;
-    int32_t len_stream_size;
-} KrakenLzTable;
-
-typedef struct KrakenDecoder
+typedef struct OozleDecoder
 {
     // Updated after the |*_DecodeStep| function completes to hold
     // the number of bytes read and written.
@@ -92,8 +66,8 @@ typedef struct KrakenDecoder
     u_int8_t *scratch;
     size_t scratch_size;
 
-    KrakenHeader hdr;
-} KrakenDecoder;
+    OozleHeader hdr;
+} OozleDecoder;
 
 typedef struct BitReader
 {
@@ -244,14 +218,14 @@ bool BitReader_ReadLengthB(BitReader *bits, u_int32_t *v);
 int32_t CountLeadingZeros(u_int32_t bits);
 int32_t Log2RoundUp(u_int32_t v);
 
-KrakenDecoder *Kraken_Create();
-void Kraken_Destroy(KrakenDecoder *kraken);
+OozleDecoder *OozleDecoderCreate();
+void OozleDecoderDestroy(OozleDecoder *decoder);
 
-const u_int8_t *Kraken_ParseHeader(
-    KrakenHeader *hdr,
+const u_int8_t *Oozle_ParseHeader(
+    OozleHeader *hdr,
     const u_int8_t *p);
-const u_int8_t *Kraken_ParseQuantumHeader(
-    KrakenQuantumHeader *hdr,
+const u_int8_t *Oozle_ParseQuantumHeader(
+    OozleQuantumHeader *hdr,
     const u_int8_t *p,
     bool use_checksum);
 
@@ -259,14 +233,14 @@ const u_int8_t *LZNA_ParseWholeMatchInfo(
     const u_int8_t *p,
     u_int32_t *dist);
 const u_int8_t *LZNA_ParseQuantumHeader(
-    KrakenQuantumHeader *hdr,
+    OozleQuantumHeader *hdr,
     const u_int8_t *p,
     bool use_checksum,
     int32_t raw_len);
 
-u_int32_t Kraken_GetCrc(const u_int8_t *p, size_t p_size);
+u_int32_t Oozle_GetCrc(const u_int8_t *p, size_t p_size);
 
-bool Kraken_DecodeBytesCore(HuffReader *hr, HuffRevLut *lut);
+bool Oozle_DecodeBytesCore(HuffReader *hr, HuffRevLut *lut);
 
 int32_t Huff_ReadCodeLengthsOld(
     BitReader *bits,
@@ -304,13 +278,13 @@ bool Huff_MakeLut(
     NewHuffLut *hufflut,
     u_int8_t *syms);
 
-int32_t Kraken_DecodeBytes_Type12(
+int32_t Oozle_DecodeBytes_Type12(
     const u_int8_t *src,
     size_t src_size,
     u_int8_t *output,
     int32_t output_size,
     int32_t type);
-int32_t Kraken_DecodeMultiArray(
+int32_t Oozle_DecodeMultiArray(
     const u_int8_t *src,
     const u_int8_t *src_end,
     u_int8_t *dst,
@@ -322,14 +296,14 @@ int32_t Kraken_DecodeMultiArray(
     bool force_memmove,
     u_int8_t *scratch,
     u_int8_t *scratch_end);
-int32_t Krak_DecodeRecursive(
+int32_t Oozle_DecodeRecursive(
     const u_int8_t *src,
     size_t src_size,
     u_int8_t *output,
     int32_t output_size,
     u_int8_t *scratch,
     u_int8_t *scratch_end);
-int32_t Krak_DecodeRLE(
+int32_t Oozle_DecodeRLE(
     const u_int8_t *src,
     size_t src_size,
     u_int8_t *dst,
@@ -344,20 +318,20 @@ bool Tans_DecodeTable(BitReader *bits, int32_t L_bits, TansData *tans_data);
 void Tans_InitLut(TansData *tans_data, int32_t L_bits, TansLutEnt *lut);
 bool Tans_Decode(TansDecoderParams *params);
 
-int32_t Krak_DecodeTans(
+int32_t Oozle_DecodeTans(
     const u_int8_t *src,
     size_t src_size,
     u_int8_t *dst,
     int32_t dst_size,
     u_int8_t *scratch,
     u_int8_t *scratch_end);
-int32_t Kraken_GetBlockSize(
+int32_t Oozle_GetBlockSize(
     const u_int8_t *src,
     const u_int8_t *src_end,
     int32_t *dest_size,
     int32_t dest_capacity);
 
-int32_t Kraken_DecodeBytes(
+int32_t Oozle_DecodeBytes(
     u_int8_t **output,
     const u_int8_t *src,
     const u_int8_t *src_end,
@@ -373,66 +347,18 @@ void CombineScaledOffsetArrays(
     int32_t scale,
     const u_int8_t *low_bits);
 
-bool Kraken_UnpackOffsets(
-    const u_int8_t *src,
-    const u_int8_t *src_end,
-    const u_int8_t *packed_offs_stream,
-    const u_int8_t *packed_offs_stream_extra,
-    int32_t packed_offs_stream_size,
-    int32_t multi_dist_scale,
-    const u_int8_t *packed_litlen_stream,
-    int32_t packed_litlen_stream_size,
-    int32_t *offs_stream,
-    int32_t *len_stream,
-    bool excess_flag,
-    int32_t excess_bytes);
-bool Kraken_ReadLzTable(
-    int32_t mode,
-    const u_int8_t *src,
-    const u_int8_t *src_end,
-    u_int8_t *dst,
-    int32_t dst_size,
-    int32_t offset,
-    u_int8_t *scratch,
-    u_int8_t *scratch_end,
-    KrakenLzTable *lztable);
-bool Kraken_ProcessLzRuns_Type0(
-    KrakenLzTable *lzt,
-    u_int8_t *dst,
-    u_int8_t *dst_end,
-    u_int8_t *dst_start);
-bool Kraken_ProcessLzRuns_Type1(
-    KrakenLzTable *lzt,
-    u_int8_t *dst,
-    u_int8_t *dst_end,
-    u_int8_t *dst_start);
-bool Kraken_ProcessLzRuns(
-    int32_t mode,
-    u_int8_t *dst,
-    int32_t dst_size,
-    int32_t offset,
-    KrakenLzTable *lztable);
-int32_t Kraken_DecodeQuantum(
-    u_int8_t *dst,
-    u_int8_t *dst_end,
-    u_int8_t *dst_start,
-    const u_int8_t *src,
-    const u_int8_t *src_end,
-    u_int8_t *scratch,
-    u_int8_t *scratch_end);
-
-void Kraken_CopyWholeMatch(
+void Oozle_CopyWholeMatch(
     u_int8_t *dst,
     u_int32_t offset,
     size_t length);
-bool Kraken_DecodeStep(
-    struct KrakenDecoder *dec,
+bool Oozle_DecodeStep(
+    struct OozleDecoder *dec,
     u_int8_t *dst_start,
     int32_t offset,
     size_t dst_bytes_left_in,
     const u_int8_t *src,
     size_t src_bytes_left);
-int32_t Kraken_Decompress(
+int32_t Oozle_Decompress(
     const u_int8_t *src,
     size_t src_len,
     u_int8_t *dst,
