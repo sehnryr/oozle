@@ -11,7 +11,7 @@ pub use decompress::decompress;
 mod ffi {
     // C++ types and signatures exposed to Rust.
     unsafe extern "C++" {
-        include!("oozle/include/kraken.h");
+        include!("oozle/include/decompressor.h");
 
         unsafe fn Kraken_Decompress(
             src: *const u8,
