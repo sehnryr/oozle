@@ -160,7 +160,7 @@ void CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
                                 int32_t scale, const u_int8_t *low_bits);
 
 void Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length);
-bool Oozle_DecodeStep (OozleDecoder &dec, u_int8_t *dst_start, int32_t offset,
+bool Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
                        size_t dst_bytes_left_in, const u_int8_t *src,
                        size_t src_bytes_left);
 int32_t Oozle_Decompress (const u_int8_t *src, size_t src_len, u_int8_t *dst,

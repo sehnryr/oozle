@@ -5,19 +5,19 @@ use crate::ffi;
 /// 
 /// # Arguments
 /// 
-/// * `src` - The compressed buffer.
-/// * `dst` - The decompressed buffer.
+/// * `input` - The compressed buffer.
+/// * `output` - The decompressed buffer.
 /// 
 /// # Returns
 /// 
 /// * `Ok(len)` - The length of the decompressed buffer.
 /// * `Err(())` - The decompression failed.
-pub unsafe fn decompress(src: &[u8], dst: &mut [u8]) -> Result<usize, ()> {
+pub unsafe fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, ()> {
     let len = ffi::Oozle_Decompress(
-        src.as_ptr(), 
-        src.len(), 
-        dst.as_mut_ptr(), 
-        dst.len(),
+        input.as_ptr(), 
+        input.len(), 
+        output.as_mut_ptr(), 
+        output.len(),
     );
 
     if len < 0 {
