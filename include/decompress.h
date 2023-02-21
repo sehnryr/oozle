@@ -1,14 +1,16 @@
 #pragma once
 
-#include "bitreader.h"
 #include "bitknit.h"
+#include "bitreader.h"
 #include "kraken.h"
 #include "leviathan.h"
 #include "lzna.h"
 #include "mermaid.h"
 #include "stdafx.h"
-#include "rust/cxx.h"
+#include "tans.h"
+
 #include "oozle/src/lib.rs.h"
+#include "rust/cxx.h"
 
 #define ALIGN_POINTER(p, align)                                               \
   ((u_int8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
@@ -109,32 +111,6 @@ struct BitReader2
 {
   const u_int8_t *p, *p_end;
   u_int32_t bitpos;
-};
-
-struct TansData
-{
-  u_int32_t A_used;
-  u_int32_t B_used;
-  u_int8_t A[256];
-  u_int32_t B[256];
-};
-
-struct TansLutEnt
-{
-  u_int32_t x;
-  u_int8_t bits_x;
-  u_int8_t symbol;
-  u_int16_t w;
-};
-
-struct TansDecoderParams
-{
-  TansLutEnt *lut;
-  u_int8_t *dst, *dst_end;
-  const u_int8_t *ptr_f, *ptr_b;
-  u_int32_t bits_f, bits_b;
-  int32_t bitpos_f, bitpos_b;
-  u_int32_t state_0, state_1, state_2, state_3, state_4;
 };
 
 static const u_int32_t kRiceCodeBits2Value[256] = {
@@ -261,12 +237,6 @@ int32_t Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size,
 int32_t Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
                          int32_t dst_size, u_int8_t *scratch,
                          u_int8_t *scratch_end);
-
-template <typename T> void SimpleSort (T *p, T *pend);
-
-bool Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data);
-void Tans_InitLut (TansData *tans_data, int32_t L_bits, TansLutEnt *lut);
-bool Tans_Decode (TansDecoderParams *params);
 
 int32_t Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
                           int32_t dst_size, u_int8_t *scratch,
