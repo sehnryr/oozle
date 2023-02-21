@@ -78,12 +78,3 @@ impl Default for ffi::OozleQuantumHeader {
         }
     }
 }
-
-/* Rust functions exposed to C++ */
-pub fn parse_header(decoder: &mut ffi::OozleDecoder, input: &[u8]) -> Result<usize, io::Error> {
-    decoder.header.parse(input)
-}
-
-pub fn parse_quantum_header(decoder: &mut ffi::OozleDecoder, input: &[u8]) -> Result<usize, io::Error> {
-    decoder.quantum_header.parse(input, decoder.header.use_checksums)
-}
