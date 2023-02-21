@@ -34,17 +34,12 @@ Log2RoundUp (u_int32_t v)
 OozleDecoder
 OozleDecoderCreate ()
 {
-  OozleDecoder decoder = default_oozle_decoder ();
-  decoder.scratch = (u_int8_t *)malloc (decoder.scratch_size);
-  memset (decoder.scratch, 0, decoder.scratch_size);
-
-  return decoder;
+  return default_oozle_decoder ();
 }
 
 void
 OozleDecoderDestroy (OozleDecoder &decoder)
 {
-  free (decoder.scratch);
 }
 
 const u_int8_t *
@@ -1426,45 +1421,46 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
     {
       n = Kraken_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch,
-          decoder.scratch + decoder.scratch_size);
+          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          decoder.scratch.data () + decoder.scratch_size);
     }
   else if (decoder.header.decoder_type == 5)
     {
       if (decoder.header.restart_decoder)
         {
           decoder.header.restart_decoder = false;
-          LZNA_InitLookup ((LznaState *)decoder.scratch);
+          LZNA_InitLookup ((LznaState *)decoder.scratch.data ());
         }
-      n = LZNA_DecodeQuantum (
-          dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, (LznaState *)decoder.scratch);
+      n = LZNA_DecodeQuantum (dst_start + offset,
+                              dst_start + offset + dst_bytes_left, dst_start,
+                              src, src + qhdr.compressed_size,
+                              (LznaState *)decoder.scratch.data ());
     }
   else if (decoder.header.decoder_type == 11)
     {
       if (decoder.header.restart_decoder)
         {
           decoder.header.restart_decoder = false;
-          BitknitState_Init ((BitknitState *)decoder.scratch);
+          BitknitState_Init ((BitknitState *)decoder.scratch.data ());
         }
-      n = (int32_t)Bitknit_Decode (src, src + qhdr.compressed_size,
-                                   dst_start + offset,
-                                   dst_start + offset + dst_bytes_left,
-                                   dst_start, (BitknitState *)decoder.scratch);
+      n = (int32_t)Bitknit_Decode (
+          src, src + qhdr.compressed_size, dst_start + offset,
+          dst_start + offset + dst_bytes_left, dst_start,
+          (BitknitState *)decoder.scratch.data ());
     }
   else if (decoder.header.decoder_type == 10)
     {
       n = Mermaid_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch,
-          decoder.scratch + decoder.scratch_size);
+          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          decoder.scratch.data () + decoder.scratch_size);
     }
   else if (decoder.header.decoder_type == 12)
     {
       n = Leviathan_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch,
-          decoder.scratch + decoder.scratch_size);
+          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          decoder.scratch.data () + decoder.scratch_size);
     }
   else
     {
