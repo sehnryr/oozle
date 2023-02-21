@@ -1477,57 +1477,6 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
 }
 
 int32_t
-Kraken_DecodeRecursive (const u_int8_t *src, size_t src_size, u_int8_t *output,
-                        int32_t output_size, u_int8_t *scratch,
-                        u_int8_t *scratch_end)
-{
-  const u_int8_t *src_org = src;
-  u_int8_t *output_end = output + output_size;
-  const u_int8_t *src_end = src + src_size;
-
-  if (src_size < 6)
-    return -1;
-
-  int32_t n = src[0] & 0x7f;
-  if (n < 2)
-    return -1;
-
-  if (!(src[0] & 0x80))
-    {
-      src++;
-      do
-        {
-          int32_t decoded_size;
-          int32_t dec = Oozle_DecodeBytes (&output, src, src_end,
-                                           &decoded_size, output_end - output,
-                                           true, scratch, scratch_end);
-          if (dec < 0)
-            return -1;
-          output += decoded_size;
-          src += dec;
-        }
-      while (--n);
-      if (output != output_end)
-        return -1;
-      return src - src_org;
-    }
-  else
-    {
-      u_int8_t *array_data;
-      int32_t array_len, decoded_size;
-      int32_t dec = Oozle_DecodeMultiArray (
-          src, src_end, output, output_end, &array_data, &array_len, 1,
-          &decoded_size, true, scratch, scratch_end);
-      if (dec < 0)
-        return -1;
-      output += decoded_size;
-      if (output != output_end)
-        return -1;
-      return dec;
-    }
-}
-
-int32_t
 Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
                  int32_t dst_size, u_int8_t *scratch, u_int8_t *scratch_end)
 {
