@@ -6,7 +6,7 @@
 // Kraken decompression happens in two phases, first one decodes
 // all the literals and copy lengths using huffman and second
 // phase runs the copy loop. This holds the tables needed by stage 2.
-typedef struct KrakenLzTable
+struct KrakenLzTable
 {
   // Stream of (literal, match) pairs. The flag u_int8_t contains
   // the length of the match, the length of the literal and whether
@@ -28,7 +28,7 @@ typedef struct KrakenLzTable
   // lengths and match length are stored in the same array.
   int32_t *len_stream;
   int32_t len_stream_size;
-} KrakenLzTable;
+};
 
 bool Kraken_UnpackOffsets (const u_int8_t *src, const u_int8_t *src_end,
                            const u_int8_t *packed_offs_stream,

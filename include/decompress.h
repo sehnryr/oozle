@@ -33,7 +33,7 @@
                                   _mm_loadl_epi64 ((__m128i *)(t))))
 
 // Header in front of each 256k block
-typedef struct OozleHeader
+struct OozleHeader
 {
   // Type of decoder used, 6 means kraken
   u_int32_t decoder_type;
@@ -46,10 +46,10 @@ typedef struct OozleHeader
 
   // Whether this block uses checksums.
   bool use_checksums;
-} OozleHeader;
+};
 
 // Additional header in front of each 256k block ("quantum").
-typedef struct OozleQuantumHeader
+struct OozleQuantumHeader
 {
   // The compressed size of this quantum. If this value is 0 it means
   // the quantum is a special quantum such as memset.
@@ -61,9 +61,9 @@ typedef struct OozleQuantumHeader
   u_int8_t flag2;
   // Whether the whole block matched a previous block
   u_int32_t whole_match_distance;
-} OozleQuantumHeader;
+};
 
-typedef struct OozleDecoder
+struct OozleDecoder
 {
   // Updated after the |*_DecodeStep| function completes to hold
   // the number of bytes read and written.
@@ -75,7 +75,7 @@ typedef struct OozleDecoder
   size_t scratch_size;
 
   OozleHeader hdr;
-} OozleDecoder;
+};
 
 static const u_int32_t kRiceCodeBits2Value[256] = {
   0x80000000, 0x00000007, 0x10000006, 0x00000006, 0x20000005, 0x00000105,
@@ -204,7 +204,7 @@ void CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
                                 int32_t scale, const u_int8_t *low_bits);
 
 void Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length);
-bool Oozle_DecodeStep (struct OozleDecoder *dec, u_int8_t *dst_start,
+bool Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
                        int32_t offset, size_t dst_bytes_left_in,
                        const u_int8_t *src, size_t src_bytes_left);
 int32_t Oozle_Decompress (const u_int8_t *src, size_t src_len, u_int8_t *dst,
