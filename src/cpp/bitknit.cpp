@@ -427,8 +427,9 @@ Bitknit_Decode (const u_int8_t *src, const u_int8_t *src_end, u_int8_t *dst,
           size_t idx = (recent_dist_mask >> (3 * sym)) & 7;
           u_int32_t mask = ~7 << (3 * sym);
           match_dist = bk->recent_dist[idx];
-          recent_dist_mask = (recent_dist_mask & mask)
-                             | (idx + 8 * recent_dist_mask) & ~mask;
+          recent_dist_mask
+              = ((recent_dist_mask & mask) | (idx + 8 * recent_dist_mask))
+                & ~mask;
         }
 
       if (match_dist >= 8)
