@@ -24,14 +24,14 @@ mod ffi {
     }
 
     struct OozleDecoder {
-        pub src_used: u32,
-        pub dst_used: u32,
+        pub input_read: u32,
+        pub output_written: u32,
 
         // pub scratch: &mut [u8; 0x6C000],
         pub scratch: *mut u8,
         pub scratch_size: usize,
 
-        pub hdr: OozleHeader,
+        pub header: OozleHeader,
     }
 
     // Rust types and signatures exposed to C++.
@@ -44,10 +44,10 @@ mod ffi {
         include!("oozle/include/decompress.h");
 
         unsafe fn Oozle_Decompress(
-            src: *const u8,
-            src_len: usize,
-            dst: *mut u8,
-            dst_len: usize,
+            input: *const u8,
+            input_len: usize,
+            output: *mut u8,
+            output_len: usize,
         ) -> i32;
     }
 }
@@ -78,12 +78,12 @@ impl Default for ffi::OozleQuantumHeader {
 impl Default for ffi::OozleDecoder {
     fn default() -> Self {
         Self {
-            src_used: 0,
-            dst_used: 0,
+            input_read: 0,
+            output_written: 0,
             // TODO: Change this to a slice.
             scratch: std::ptr::null_mut(),
             scratch_size: 0x6C000,
-            hdr: ffi::OozleHeader::default(),
+            header: ffi::OozleHeader::default(),
         }
     }
 }
