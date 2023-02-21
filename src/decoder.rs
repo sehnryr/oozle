@@ -1,4 +1,5 @@
 use crate::ffi;
+use std::io;
 
 impl From<u8> for ffi::OozleDecoderType {
     fn from(value: u8) -> Self {
@@ -13,6 +14,16 @@ impl From<u8> for ffi::OozleDecoderType {
     }
 }
 
+impl ffi::OozleDecoder {
+    pub fn parse_header(&mut self, input: &[u8]) -> Result<usize, io::Error> {
+        self.header.parse(input)
+    }
+
+    pub fn parse_quantum_header(&mut self, input: &[u8]) -> Result<usize, io::Error> {
+        self.quantum_header.parse(input, self.header.use_checksums)
+    }
+}
+
 impl Default for ffi::OozleDecoder {
     fn default() -> Self {
         Self {
@@ -23,4 +34,16 @@ impl Default for ffi::OozleDecoder {
             quantum_header: ffi::OozleQuantumHeader::default(),
         }
     }
+}
+
+/* Rust functions exposed to C++ */
+pub fn parse_header(decoder: &mut ffi::OozleDecoder, input: &[u8]) -> Result<usize, io::Error> {
+    decoder.parse_header(input)
+}
+
+pub fn parse_quantum_header(
+    decoder: &mut ffi::OozleDecoder,
+    input: &[u8],
+) -> Result<usize, io::Error> {
+    decoder.parse_quantum_header(input)
 }

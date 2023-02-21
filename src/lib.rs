@@ -6,7 +6,7 @@ mod decoder;
 mod decompress;
 mod header;
 
-use header::{parse_header, parse_quantum_header};
+use decoder::{parse_header, parse_quantum_header};
 
 pub use decompress::decompress;
 
