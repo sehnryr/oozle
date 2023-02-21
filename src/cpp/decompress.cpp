@@ -1422,7 +1422,7 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
       n = Kraken_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           src, src + qhdr.compressed_size, decoder.scratch.data (),
-          decoder.scratch.data () + decoder.scratch_size);
+          decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else if (decoder.header.decoder_type == 5)
     {
@@ -1453,14 +1453,14 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
       n = Mermaid_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           src, src + qhdr.compressed_size, decoder.scratch.data (),
-          decoder.scratch.data () + decoder.scratch_size);
+          decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else if (decoder.header.decoder_type == 12)
     {
       n = Leviathan_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           src, src + qhdr.compressed_size, decoder.scratch.data (),
-          decoder.scratch.data () + decoder.scratch_size);
+          decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else
     {
