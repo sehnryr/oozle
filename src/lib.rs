@@ -30,10 +30,7 @@ mod ffi {
     struct OozleDecoder {
         pub input_read: u32,
         pub output_written: u32,
-
         pub scratch: [u8; 0x6C000],
-        pub scratch_size: usize,
-
         pub header: OozleHeader,
     }
 

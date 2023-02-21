@@ -6,7 +6,6 @@ impl Default for ffi::OozleDecoder {
             input_read: 0,
             output_written: 0,
             scratch: [0; 0x6C000],
-            scratch_size: 0x6C000,
             header: ffi::OozleHeader::default(),
         }
     }
