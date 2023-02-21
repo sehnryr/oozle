@@ -6,6 +6,8 @@
 #include "lzna.h"
 #include "mermaid.h"
 #include "stdafx.h"
+#include "rust/cxx.h"
+#include "oozle/src/lib.rs.h"
 
 #define ALIGN_POINTER(p, align)                                               \
   ((u_int8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
@@ -25,8 +27,6 @@
   _mm_storel_epi64 ((__m128i *)(d),                                           \
                     _mm_add_epi8 (_mm_loadl_epi64 ((__m128i *)(s)),           \
                                   _mm_loadl_epi64 ((__m128i *)(t))))
-
-#define finline __forceinline
 
 // Header in front of each 256k block
 typedef struct OozleHeader

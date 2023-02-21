@@ -169,19 +169,16 @@ Leviathan_ReadLzTable (int32_t chunk_type, const u_int8_t *src,
       0);
 }
 
-#define finline __forceinline
-
 struct LeviathanModeRaw
 {
   const u_int8_t *lit_stream;
 
-  finline
-  LeviathanModeRaw (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeRaw (LeviathanLzTable *lzt, u_int8_t *dst_start)
       : lit_stream (lzt->lit_stream[0])
   {
   }
 
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -216,7 +213,7 @@ struct LeviathanModeRaw
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     if (final_len >= 64)
@@ -252,13 +249,12 @@ struct LeviathanModeSub
 {
   const u_int8_t *lit_stream;
 
-  finline
-  LeviathanModeSub (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeSub (LeviathanLzTable *lzt, u_int8_t *dst_start)
       : lit_stream (lzt->lit_stream[0])
   {
   }
 
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -294,7 +290,7 @@ struct LeviathanModeSub
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     if (final_len >= 8)
@@ -321,13 +317,13 @@ struct LeviathanModeLamSub
 {
   const u_int8_t *lit_stream, *lam_lit_stream;
 
-  finline
-  LeviathanModeLamSub (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeLamSub (LeviathanLzTable *lzt,
+                                     u_int8_t *dst_start)
       : lit_stream (lzt->lit_stream[0]), lam_lit_stream (lzt->lit_stream[1])
   {
   }
 
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -373,7 +369,7 @@ struct LeviathanModeLamSub
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     dst[0] = *lam_lit_stream++ + dst[last_offset], dst++;
@@ -408,13 +404,13 @@ struct LeviathanModeSubAnd3
   };
   const u_int8_t *lit_stream[NUM];
 
-  finline
-  LeviathanModeSubAnd3 (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeSubAnd3 (LeviathanLzTable *lzt,
+                                      u_int8_t *dst_start)
   {
     for (size_t i = 0; i != NUM; i++)
       lit_stream[i] = lzt->lit_stream[(-(intptr_t)dst_start + i) & MASK];
   }
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -444,7 +440,7 @@ struct LeviathanModeSubAnd3
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     if (final_len > 0)
@@ -467,13 +463,13 @@ struct LeviathanModeSubAndF
   };
   const u_int8_t *lit_stream[NUM];
 
-  finline
-  LeviathanModeSubAndF (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeSubAndF (LeviathanLzTable *lzt,
+                                      u_int8_t *dst_start)
   {
     for (size_t i = 0; i != NUM; i++)
       lit_stream[i] = lzt->lit_stream[(-(intptr_t)dst_start + i) & MASK];
   }
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -503,7 +499,7 @@ struct LeviathanModeSubAndF
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     if (final_len > 0)
@@ -522,8 +518,7 @@ struct LeviathanModeO1
   const u_int8_t *lit_streams[16];
   u_int8_t next_lit[16];
 
-  finline
-  LeviathanModeO1 (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeO1 (LeviathanLzTable *lzt, u_int8_t *dst_start)
   {
     for (size_t i = 0; i != 16; i++)
       {
@@ -533,7 +528,7 @@ struct LeviathanModeO1
       }
   }
 
-  finline bool
+  __forceinline bool
   CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
                 u_int8_t *match_zone_end, size_t last_offset)
   {
@@ -570,7 +565,7 @@ struct LeviathanModeO1
     return true;
   }
 
-  finline void
+  __forceinline void
   CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
   {
     u_int32_t context = dst[-1];
