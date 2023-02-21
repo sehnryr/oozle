@@ -2,6 +2,7 @@
 
 #include "bitknit.h"
 #include "bitreader.h"
+#include "huffman.h"
 #include "kraken.h"
 #include "leviathan.h"
 #include "lzna.h"
@@ -75,37 +76,6 @@ typedef struct OozleDecoder
 
   OozleHeader hdr;
 } OozleDecoder;
-
-struct HuffRevLut
-{
-  u_int8_t bits2len[2048];
-  u_int8_t bits2sym[2048];
-};
-
-typedef struct HuffReader
-{
-  // Array to hold the output of the huffman read array operation
-  u_int8_t *output, *output_end;
-  // We decode three parallel streams, two forwards, |src| and |src_mid|
-  // while |src_end| is decoded backwards.
-  const u_int8_t *src, *src_mid, *src_end, *src_mid_org;
-  int32_t src_bitpos, src_mid_bitpos, src_end_bitpos;
-  u_int32_t src_bits, src_mid_bits, src_end_bits;
-} HuffReader;
-
-struct HuffRange
-{
-  u_int16_t symbol;
-  u_int16_t num;
-};
-
-struct NewHuffLut
-{
-  // Mapping that maps a bit pattern to a code length.
-  u_int8_t bits2len[2048 + 16];
-  // Mapping that maps a bit pattern to a symbol.
-  u_int8_t bits2sym[2048 + 16];
-};
 
 static const u_int32_t kRiceCodeBits2Value[256] = {
   0x80000000, 0x00000007, 0x10000006, 0x00000006, 0x20000005, 0x00000105,
@@ -197,22 +167,11 @@ u_int32_t Oozle_GetCrc (const u_int8_t *p, size_t p_size);
 
 bool Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut);
 
-int32_t Huff_ReadCodeLengthsOld (BitReader *bits, u_int8_t *syms,
-                                 u_int32_t *code_prefix);
-
 bool DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br);
 bool DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
                            BitReader2 *br);
 
-int32_t Huff_ConvertToRanges (HuffRange *range, int32_t num_symbols, int32_t P,
-                              const u_int8_t *symlen, BitReader *bits);
-int32_t Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
-                                 u_int32_t *code_prefix);
-
 void FillByteOverflow16 (u_int8_t *dst, u_int8_t v, size_t n);
-
-bool Huff_MakeLut (const u_int32_t *prefix_org, const u_int32_t *prefix_cur,
-                   NewHuffLut *hufflut, u_int8_t *syms);
 
 int32_t Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
                                   u_int8_t *output, int32_t output_size,

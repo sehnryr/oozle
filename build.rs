@@ -4,6 +4,7 @@ fn main() {
         .file("src/cpp/bitknit.cpp")
         .file("src/cpp/bitreader.cpp")
         .file("src/cpp/tans.cpp")
+        .file("src/cpp/huffman.cpp")
         .file("src/cpp/kraken.cpp")
         .file("src/cpp/mermaid.cpp")
         .file("src/cpp/leviathan.cpp")
@@ -16,6 +17,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/cpp/bitknit.cpp");
     println!("cargo:rerun-if-changed=src/cpp/bitreader.cpp");
     println!("cargo:rerun-if-changed=src/cpp/tans.cpp");
+    println!("cargo:rerun-if-changed=src/cpp/huffman.cpp");
     println!("cargo:rerun-if-changed=src/cpp/kraken.cpp");
     println!("cargo:rerun-if-changed=src/cpp/mermaid.cpp");
     println!("cargo:rerun-if-changed=src/cpp/leviathan.cpp");
@@ -26,6 +28,7 @@ fn main() {
     println!("cargo:rerun-if-changed=include/bitknit.h");
     println!("cargo:rerun-if-changed=include/bitreader.h");
     println!("cargo:rerun-if-changed=include/tans.h");
+    println!("cargo:rerun-if-changed=include/huffman.h");
     println!("cargo:rerun-if-changed=include/kraken.h");
     println!("cargo:rerun-if-changed=include/mermaid.h");
     println!("cargo:rerun-if-changed=include/leviathan.h");
