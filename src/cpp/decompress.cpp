@@ -31,17 +31,6 @@ Log2RoundUp (u_int32_t v)
     }
 }
 
-OozleDecoder
-OozleDecoderCreate ()
-{
-  return default_oozle_decoder ();
-}
-
-void
-OozleDecoderDestroy (OozleDecoder &decoder)
-{
-}
-
 const u_int8_t *
 Oozle_ParseHeader (OozleHeader *hdr, const u_int8_t *p)
 {
@@ -1488,16 +1477,16 @@ Oozle_Decompress (rust::Slice<const u_int8_t> input,
   int32_t input_offset = 0;
   int32_t output_offset = 0;
 
-  OozleDecoder decoder = OozleDecoderCreate ();
+  OozleDecoder decoder = default_oozle_decoder ();
 
   while (output_len != 0)
     {
       if (!Oozle_DecodeStep (decoder, output_ptr, output_offset, output_len,
                              input_ptr + input_offset, input_len))
-        goto FAIL;
+        return -1;
 
       if (decoder.input_read == 0)
-        goto FAIL;
+        return -1;
 
       input_len -= decoder.input_read;
       output_len -= decoder.output_written;
@@ -1507,11 +1496,7 @@ Oozle_Decompress (rust::Slice<const u_int8_t> input,
     }
 
   if (input_len != 0)
-    goto FAIL;
-  OozleDecoderDestroy (decoder);
-  return output_offset;
+    return -1;
 
-FAIL:
-  OozleDecoderDestroy (decoder);
-  return -1;
+  return output_offset;
 }
