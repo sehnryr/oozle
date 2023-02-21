@@ -8,7 +8,7 @@ struct HuffRevLut
   u_int8_t bits2sym[2048];
 };
 
-typedef struct HuffReader
+struct HuffReader
 {
   // Array to hold the output of the huffman read array operation
   u_int8_t *output, *output_end;
@@ -17,7 +17,7 @@ typedef struct HuffReader
   const u_int8_t *src, *src_mid, *src_end, *src_mid_org;
   int32_t src_bitpos, src_mid_bitpos, src_end_bitpos;
   u_int32_t src_bits, src_mid_bits, src_end_bits;
-} HuffReader;
+};
 
 struct HuffRange
 {

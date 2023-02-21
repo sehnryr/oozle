@@ -6,7 +6,7 @@
 // Mermaid/Selkie decompression also happens in two phases, just like in
 // Kraken, but the match copier works differently. Both Mermaid and Selkie use
 // the same on-disk format, only the compressor differs.
-typedef struct MermaidLzTable
+struct MermaidLzTable
 {
   // Flag stream. Format of flags:
   // Read flagbyte from |cmd_stream|
@@ -61,7 +61,7 @@ typedef struct MermaidLzTable
 
   // Flag offsets for next 64k chunk.
   u_int32_t cmd_stream_2_offs, cmd_stream_2_offs_end;
-} MermaidLzTable;
+};
 
 int32_t Mermaid_DecodeFarOffsets (const u_int8_t *src, const u_int8_t *src_end,
                                   u_int32_t *output, size_t output_size,

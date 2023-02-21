@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-typedef struct BitReader
+struct BitReader
 {
   // |p| holds the current u_int8_t and |p_end| the end of the buffer.
   const u_int8_t *p, *p_end;
@@ -10,7 +10,7 @@ typedef struct BitReader
   u_int32_t bits;
   // Next u_int8_t will end up in the |bitpos| position in |bits|.
   int32_t bitpos;
-} BitReader;
+};
 
 struct BitReader2
 {

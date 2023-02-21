@@ -1333,7 +1333,7 @@ Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length)
 }
 
 bool
-Oozle_DecodeStep (struct OozleDecoder *dec, u_int8_t *dst_start,
+Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
                   int32_t offset, size_t dst_bytes_left_in,
                   const u_int8_t *src, size_t src_bytes_left)
 {
@@ -1435,23 +1435,23 @@ Oozle_DecodeStep (struct OozleDecoder *dec, u_int8_t *dst_start,
       if (dec->hdr.restart_decoder)
         {
           dec->hdr.restart_decoder = false;
-          LZNA_InitLookup ((struct LznaState *)dec->scratch);
+          LZNA_InitLookup ((LznaState *)dec->scratch);
         }
       n = LZNA_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, (struct LznaState *)dec->scratch);
+          src, src + qhdr.compressed_size, (LznaState *)dec->scratch);
     }
   else if (dec->hdr.decoder_type == 11)
     {
       if (dec->hdr.restart_decoder)
         {
           dec->hdr.restart_decoder = false;
-          BitknitState_Init ((struct BitknitState *)dec->scratch);
+          BitknitState_Init ((BitknitState *)dec->scratch);
         }
       n = (int32_t)Bitknit_Decode (
           src, src + qhdr.compressed_size, dst_start + offset,
           dst_start + offset + dst_bytes_left, dst_start,
-          (struct BitknitState *)dec->scratch);
+          (BitknitState *)dec->scratch);
     }
   else if (dec->hdr.decoder_type == 10)
     {
