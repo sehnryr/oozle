@@ -12,6 +12,7 @@
 
 #include "oozle/src/lib.rs.h"
 #include "rust/cxx.h"
+#include <memory>
 
 #define ALIGN_POINTER(p, align)                                               \
   ((u_int8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
@@ -31,51 +32,6 @@
   _mm_storel_epi64 ((__m128i *)(d),                                           \
                     _mm_add_epi8 (_mm_loadl_epi64 ((__m128i *)(s)),           \
                                   _mm_loadl_epi64 ((__m128i *)(t))))
-
-// Header in front of each 256k block
-struct OozleHeader
-{
-  // Type of decoder used, 6 means kraken
-  u_int32_t decoder_type;
-
-  // Whether to restart the decoder
-  bool restart_decoder;
-
-  // Whether this block is uncompressed
-  bool uncompressed;
-
-  // Whether this block uses checksums.
-  bool use_checksums;
-};
-
-// Additional header in front of each 256k block ("quantum").
-struct OozleQuantumHeader
-{
-  // The compressed size of this quantum. If this value is 0 it means
-  // the quantum is a special quantum such as memset.
-  u_int32_t compressed_size;
-  // If checksums are enabled, holds the checksum.
-  u_int32_t checksum;
-  // Two flags
-  u_int8_t flag1;
-  u_int8_t flag2;
-  // Whether the whole block matched a previous block
-  u_int32_t whole_match_distance;
-};
-
-struct OozleDecoder
-{
-  // Updated after the |*_DecodeStep| function completes to hold
-  // the number of bytes read and written.
-  int32_t src_used, dst_used;
-
-  // Pointer to a 256k buffer that holds the intermediate state
-  // in between decode phase 1 and 2.
-  u_int8_t *scratch;
-  size_t scratch_size;
-
-  OozleHeader hdr;
-};
 
 static const u_int32_t kRiceCodeBits2Value[256] = {
   0x80000000, 0x00000007, 0x10000006, 0x00000006, 0x20000005, 0x00000105,
@@ -150,8 +106,8 @@ u_int32_t BSF (u_int32_t x); // Bit scan forward
 int32_t CountLeadingZeros (u_int32_t bits);
 int32_t Log2RoundUp (u_int32_t v);
 
-OozleDecoder *OozleDecoderCreate ();
-void OozleDecoderDestroy (OozleDecoder *decoder);
+OozleDecoder OozleDecoderCreate ();
+void OozleDecoderDestroy (OozleDecoder &decoder);
 
 const u_int8_t *Oozle_ParseHeader (OozleHeader *hdr, const u_int8_t *p);
 const u_int8_t *Oozle_ParseQuantumHeader (OozleQuantumHeader *hdr,
@@ -204,8 +160,8 @@ void CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
                                 int32_t scale, const u_int8_t *low_bits);
 
 void Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length);
-bool Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
-                       int32_t offset, size_t dst_bytes_left_in,
-                       const u_int8_t *src, size_t src_bytes_left);
+bool Oozle_DecodeStep (OozleDecoder &dec, u_int8_t *dst_start, int32_t offset,
+                       size_t dst_bytes_left_in, const u_int8_t *src,
+                       size_t src_bytes_left);
 int32_t Oozle_Decompress (const u_int8_t *src, size_t src_len, u_int8_t *dst,
                           size_t dst_len);
