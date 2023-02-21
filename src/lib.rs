@@ -2,7 +2,11 @@
 ///
 /// A Rust library for decompressing Kraken, Mermaid, Selkie, Leviathan,
 /// LZNA and Bitknit compressed buffers.
+mod decoder;
 mod decompress;
+mod header;
+
+use decoder::default_oozle_decoder;
 
 pub use decompress::decompress;
 
@@ -27,8 +31,7 @@ mod ffi {
         pub input_read: u32,
         pub output_written: u32,
 
-        // pub scratch: &mut [u8; 0x6C000],
-        pub scratch: *mut u8,
+        pub scratch: [u8; 0x6C000],
         pub scratch_size: usize,
 
         pub header: OozleHeader,
@@ -50,44 +53,4 @@ mod ffi {
             output_len: usize,
         ) -> i32;
     }
-}
-
-impl Default for ffi::OozleHeader {
-    fn default() -> Self {
-        Self {
-            decoder_type: 0,
-            restart_decoder: false,
-            uncompressed: false,
-            use_checksums: false,
-        }
-    }
-}
-
-impl Default for ffi::OozleQuantumHeader {
-    fn default() -> Self {
-        Self {
-            compressed_size: 0,
-            checksum: 0,
-            flag1: 0,
-            flag2: 0,
-            whole_match_distance: 0,
-        }
-    }
-}
-
-impl Default for ffi::OozleDecoder {
-    fn default() -> Self {
-        Self {
-            input_read: 0,
-            output_written: 0,
-            // TODO: Change this to a slice.
-            scratch: std::ptr::null_mut(),
-            scratch_size: 0x6C000,
-            header: ffi::OozleHeader::default(),
-        }
-    }
-}
-
-fn default_oozle_decoder() -> ffi::OozleDecoder {
-    ffi::OozleDecoder::default()
 }
