@@ -6,8 +6,6 @@ mod decoder;
 mod decompress;
 mod header;
 
-use decoder::default_oozle_decoder;
-
 pub use decompress::decompress;
 
 #[cxx::bridge]
@@ -34,15 +32,17 @@ mod ffi {
         pub header: OozleHeader,
     }
 
-    // Rust types and signatures exposed to C++.
-    extern "Rust" {
-        fn default_oozle_decoder() -> OozleDecoder;
-    }
-
     // C++ types and signatures exposed to Rust.
     extern "C++" {
         include!("oozle/include/decompress.h");
 
-        unsafe fn Oozle_Decompress(input: &[u8], output: &mut [u8]) -> i32;
+        unsafe fn Oozle_DecodeStep(
+            decoder: &mut OozleDecoder,
+            dst_start: *mut u8,
+            offset: i32,
+            dst_bytes_left_in: usize,
+            src: *const u8,
+            src_bytes_left: usize,
+        ) -> bool;
     }
 }
