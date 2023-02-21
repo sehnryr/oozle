@@ -31,22 +31,20 @@ Log2RoundUp (u_int32_t v)
     }
 }
 
-OozleDecoder *
+OozleDecoder
 OozleDecoderCreate ()
 {
-  size_t scratch_size = 0x6C000;
-  size_t memory_needed = sizeof (OozleDecoder) + scratch_size;
-  OozleDecoder *dec = (OozleDecoder *)malloc (memory_needed);
-  memset (dec, 0, sizeof (OozleDecoder));
-  dec->scratch_size = scratch_size;
-  dec->scratch = (u_int8_t *)(dec + 1);
-  return dec;
+  OozleDecoder decoder = default_oozle_decoder ();
+  decoder.scratch = (u_int8_t *)malloc (decoder.scratch_size);
+  memset (decoder.scratch, 0, decoder.scratch_size);
+
+  return decoder;
 }
 
 void
-OozleDecoderDestroy (OozleDecoder *decoder)
+OozleDecoderDestroy (OozleDecoder &decoder)
 {
-  free (decoder);
+  free (decoder.scratch);
 }
 
 const u_int8_t *
@@ -898,8 +896,8 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
 
 int32_t
 Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size, u_int8_t *output,
-                        int32_t output_size, u_int8_t *scratch,
-                        u_int8_t *scratch_end)
+                       int32_t output_size, u_int8_t *scratch,
+                       u_int8_t *scratch_end)
 {
   const u_int8_t *src_org = src;
   u_int8_t *output_end = output + output_size;
@@ -1293,7 +1291,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
       break;
     case 5:
       src_used = Oozle_DecodeRecursive (src, src_size, dst, dst_size, scratch,
-                                         scratch_end);
+                                        scratch_end);
       break;
     case 3:
       src_used = Oozle_DecodeRLE (src, src_size, dst, dst_size, scratch,
@@ -1333,9 +1331,9 @@ Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length)
 }
 
 bool
-Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
-                  int32_t offset, size_t dst_bytes_left_in,
-                  const u_int8_t *src, size_t src_bytes_left)
+Oozle_DecodeStep (OozleDecoder &dec, u_int8_t *dst_start, int32_t offset,
+                  size_t dst_bytes_left_in, const u_int8_t *src,
+                  size_t src_bytes_left)
 {
   const u_int8_t *src_in = src;
   const u_int8_t *src_end = src + src_bytes_left;
@@ -1344,38 +1342,38 @@ Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
 
   if ((offset & 0x3FFFF) == 0)
     {
-      src = Oozle_ParseHeader (&dec->hdr, src);
+      src = Oozle_ParseHeader (&dec.hdr, src);
       if (!src)
         return false;
     }
 
   bool is_kraken_decoder
-      = (dec->hdr.decoder_type == 6 || dec->hdr.decoder_type == 10
-         || dec->hdr.decoder_type == 12);
+      = (dec.hdr.decoder_type == 6 || dec.hdr.decoder_type == 10
+         || dec.hdr.decoder_type == 12);
 
   int32_t dst_bytes_left
       = (int32_t)MIN (is_kraken_decoder ? 0x40000 : 0x4000, dst_bytes_left_in);
 
-  if (dec->hdr.uncompressed)
+  if (dec.hdr.uncompressed)
     {
       if (src_end - src < dst_bytes_left)
         {
-          dec->src_used = dec->dst_used = 0;
+          dec.src_used = dec.dst_used = 0;
           return true;
         }
       memmove (dst_start + offset, src, dst_bytes_left);
-      dec->src_used = (src - src_in) + dst_bytes_left;
-      dec->dst_used = dst_bytes_left;
+      dec.src_used = (src - src_in) + dst_bytes_left;
+      dec.dst_used = dst_bytes_left;
       return true;
     }
 
   if (is_kraken_decoder)
     {
-      src = Oozle_ParseQuantumHeader (&qhdr, src, dec->hdr.use_checksums);
+      src = Oozle_ParseQuantumHeader (&qhdr, src, dec.hdr.use_checksums);
     }
   else
     {
-      src = LZNA_ParseQuantumHeader (&qhdr, src, dec->hdr.use_checksums,
+      src = LZNA_ParseQuantumHeader (&qhdr, src, dec.hdr.use_checksums,
                                      dst_bytes_left);
     }
 
@@ -1385,7 +1383,7 @@ Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
   // Too few bytes in buffer to make any progress?
   if ((uintptr_t)(src_end - src) < qhdr.compressed_size)
     {
-      dec->src_used = dec->dst_used = 0;
+      dec.src_used = dec.dst_used = 0;
       return true;
     }
 
@@ -1405,12 +1403,12 @@ Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
         {
           memset (dst_start + offset, qhdr.checksum, dst_bytes_left);
         }
-      dec->src_used = (src - src_in);
-      dec->dst_used = dst_bytes_left;
+      dec.src_used = (src - src_in);
+      dec.dst_used = dst_bytes_left;
       return true;
     }
 
-  if (dec->hdr.use_checksums
+  if (dec.hdr.use_checksums
       && (Oozle_GetCrc (src, qhdr.compressed_size) & 0xFFFFFF)
              != qhdr.checksum)
     return false;
@@ -1418,54 +1416,54 @@ Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
   if (qhdr.compressed_size == dst_bytes_left)
     {
       memmove (dst_start + offset, src, dst_bytes_left);
-      dec->src_used = (src - src_in) + dst_bytes_left;
-      dec->dst_used = dst_bytes_left;
+      dec.src_used = (src - src_in) + dst_bytes_left;
+      dec.dst_used = dst_bytes_left;
       return true;
     }
 
-  if (dec->hdr.decoder_type == 6)
+  if (dec.hdr.decoder_type == 6)
     {
       n = Kraken_DecodeQuantum (dst_start + offset,
                                 dst_start + offset + dst_bytes_left, dst_start,
-                                src, src + qhdr.compressed_size, dec->scratch,
-                                dec->scratch + dec->scratch_size);
+                                src, src + qhdr.compressed_size, dec.scratch,
+                                dec.scratch + dec.scratch_size);
     }
-  else if (dec->hdr.decoder_type == 5)
+  else if (dec.hdr.decoder_type == 5)
     {
-      if (dec->hdr.restart_decoder)
+      if (dec.hdr.restart_decoder)
         {
-          dec->hdr.restart_decoder = false;
-          LZNA_InitLookup ((LznaState *)dec->scratch);
+          dec.hdr.restart_decoder = false;
+          LZNA_InitLookup ((LznaState *)dec.scratch);
         }
       n = LZNA_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, (LznaState *)dec->scratch);
+          src, src + qhdr.compressed_size, (LznaState *)dec.scratch);
     }
-  else if (dec->hdr.decoder_type == 11)
+  else if (dec.hdr.decoder_type == 11)
     {
-      if (dec->hdr.restart_decoder)
+      if (dec.hdr.restart_decoder)
         {
-          dec->hdr.restart_decoder = false;
-          BitknitState_Init ((BitknitState *)dec->scratch);
+          dec.hdr.restart_decoder = false;
+          BitknitState_Init ((BitknitState *)dec.scratch);
         }
-      n = (int32_t)Bitknit_Decode (
-          src, src + qhdr.compressed_size, dst_start + offset,
-          dst_start + offset + dst_bytes_left, dst_start,
-          (BitknitState *)dec->scratch);
+      n = (int32_t)Bitknit_Decode (src, src + qhdr.compressed_size,
+                                   dst_start + offset,
+                                   dst_start + offset + dst_bytes_left,
+                                   dst_start, (BitknitState *)dec.scratch);
     }
-  else if (dec->hdr.decoder_type == 10)
+  else if (dec.hdr.decoder_type == 10)
     {
-      n = Mermaid_DecodeQuantum (
-          dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, dec->scratch,
-          dec->scratch + dec->scratch_size);
+      n = Mermaid_DecodeQuantum (dst_start + offset,
+                                 dst_start + offset + dst_bytes_left,
+                                 dst_start, src, src + qhdr.compressed_size,
+                                 dec.scratch, dec.scratch + dec.scratch_size);
     }
-  else if (dec->hdr.decoder_type == 12)
+  else if (dec.hdr.decoder_type == 12)
     {
       n = Leviathan_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, dec->scratch,
-          dec->scratch + dec->scratch_size);
+          src, src + qhdr.compressed_size, dec.scratch,
+          dec.scratch + dec.scratch_size);
     }
   else
     {
@@ -1475,8 +1473,8 @@ Oozle_DecodeStep (OozleDecoder *dec, u_int8_t *dst_start,
   if (n != qhdr.compressed_size)
     return false;
 
-  dec->src_used = (src - src_in) + n;
-  dec->dst_used = dst_bytes_left;
+  dec.src_used = (src - src_in) + n;
+  dec.dst_used = dst_bytes_left;
   return true;
 }
 
@@ -1484,18 +1482,18 @@ int32_t
 Oozle_Decompress (const u_int8_t *src, size_t src_len, u_int8_t *dst,
                   size_t dst_len)
 {
-  OozleDecoder *dec = OozleDecoderCreate ();
+  OozleDecoder dec = OozleDecoderCreate ();
   int32_t offset = 0;
   while (dst_len != 0)
     {
       if (!Oozle_DecodeStep (dec, dst, offset, dst_len, src, src_len))
         goto FAIL;
-      if (dec->src_used == 0)
+      if (dec.src_used == 0)
         goto FAIL;
-      src += dec->src_used;
-      src_len -= dec->src_used;
-      dst_len -= dec->dst_used;
-      offset += dec->dst_used;
+      src += dec.src_used;
+      src_len -= dec.src_used;
+      dst_len -= dec.dst_used;
+      offset += dec.dst_used;
     }
   if (src_len != 0)
     goto FAIL;
