@@ -6,12 +6,23 @@ mod decoder;
 mod decompress;
 mod header;
 
+use header::parse_header;
+
 pub use decompress::decompress;
 
 #[cxx::bridge]
 mod ffi {
+    enum OozleDecoderType {
+        LZNA = 5,
+        Kraken = 6,
+        Mermaid = 10,
+        Bitknit = 11,
+        Leviathan = 12,
+        Unknown = 0,
+    }
+
     struct OozleHeader {
-        pub decoder_type: u32,
+        pub decoder_type: OozleDecoderType,
         pub restart_decoder: bool,
         pub uncompressed: bool,
         pub use_checksums: bool,
@@ -30,6 +41,11 @@ mod ffi {
         pub output_written: u32,
         pub scratch: [u8; 0x6C000],
         pub header: OozleHeader,
+    }
+
+    // Rust types and signatures exposed to C++.
+    extern "Rust" {
+        fn parse_header(decoder: &mut OozleDecoder, input: &[u8]) -> Result<usize>;
     }
 
     // C++ types and signatures exposed to Rust.

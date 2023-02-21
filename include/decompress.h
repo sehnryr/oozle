@@ -106,7 +106,6 @@ u_int32_t BSF (u_int32_t x); // Bit scan forward
 int32_t CountLeadingZeros (u_int32_t bits);
 int32_t Log2RoundUp (u_int32_t v);
 
-const u_int8_t *Oozle_ParseHeader (OozleHeader *hdr, const u_int8_t *p);
 const u_int8_t *Oozle_ParseQuantumHeader (OozleQuantumHeader *hdr,
                                           const u_int8_t *p,
                                           bool use_checksum);
