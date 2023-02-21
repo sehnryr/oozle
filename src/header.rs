@@ -14,7 +14,7 @@ impl ffi::OozleHeader {
 
         header_byte = input[1];
 
-        self.decoder_type = ffi::OozleDecoderType::from(header_byte & 0x7F);
+        self.decoder_type = ffi::OozleDecoderType::from(header_byte & 0xF);
         self.use_checksums = (header_byte >> 7) & 1 != 0;
 
         if self.decoder_type == ffi::OozleDecoderType::Unknown {
