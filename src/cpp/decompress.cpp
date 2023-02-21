@@ -32,39 +32,6 @@ Log2RoundUp (u_int32_t v)
 }
 
 const u_int8_t *
-Oozle_ParseQuantumHeader (OozleQuantumHeader *hdr, const u_int8_t *p,
-                          bool use_checksum)
-{
-  u_int32_t v = (p[0] << 16) | (p[1] << 8) | p[2];
-  u_int32_t size = v & 0x3FFFF;
-  if (size != 0x3ffff)
-    {
-      hdr->compressed_size = size + 1;
-      hdr->flag1 = (v >> 18) & 1;
-      hdr->flag2 = (v >> 19) & 1;
-      if (use_checksum)
-        {
-          hdr->checksum = (p[3] << 16) | (p[4] << 8) | p[5];
-          return p + 6;
-        }
-      else
-        {
-          return p + 3;
-        }
-    }
-  v >>= 18;
-  if (v == 1)
-    {
-      // memset
-      hdr->checksum = p[3];
-      hdr->compressed_size = 0;
-      hdr->whole_match_distance = 0;
-      return p + 4;
-    }
-  return NULL;
-}
-
-const u_int8_t *
 LZNA_ParseWholeMatchInfo (const u_int8_t *p, u_int32_t *dist)
 {
   u_int32_t v = _byteswap_ushort (*(u_int16_t *)p);
@@ -1335,8 +1302,7 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
 
   if (is_kraken_decoder)
     {
-      src = Oozle_ParseQuantumHeader (&decoder.quantum_header, src,
-                                      decoder.header.use_checksums);
+      src += parse_quantum_header (decoder, rust::Slice (src, src_end - src));
     }
   else
     {
