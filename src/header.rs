@@ -36,6 +36,37 @@ impl Default for ffi::OozleHeader {
     }
 }
 
+impl ffi::OozleQuantumHeader {
+    pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize, io::Error> {
+        let mut v: u32 = u32::from_be_bytes([0, input[0], input[1], input[2]]);
+        let size: usize = (v & 0xFFFF) as usize;
+
+        if size != 0xFFFF {
+            self.compressed_size = size as u32 + 1;
+            self.flag1 = ((v >> 18) & 1) as u8;
+            self.flag2 = ((v >> 19) & 1) as u8;
+
+            if use_checksum {
+                self.checksum = u32::from_be_bytes([0, input[3], input[4], input[5]]);
+                return Ok(6);
+            } else {
+                return Ok(3);
+            }
+        }
+
+        v >>= 18;
+
+        if v == 1 {
+            self.checksum = input[3] as u32;
+            self.compressed_size = 0;
+            self.whole_match_distance = 0;
+            return Ok(4);
+        }
+
+        Err(io::Error::from(io::ErrorKind::InvalidData))
+    }
+}
+
 impl Default for ffi::OozleQuantumHeader {
     fn default() -> Self {
         Self {
@@ -51,4 +82,8 @@ impl Default for ffi::OozleQuantumHeader {
 /* Rust functions exposed to C++ */
 pub fn parse_header(decoder: &mut ffi::OozleDecoder, input: &[u8]) -> Result<usize, io::Error> {
     decoder.header.parse(input)
+}
+
+pub fn parse_quantum_header(decoder: &mut ffi::OozleDecoder, input: &[u8]) -> Result<usize, io::Error> {
+    decoder.quantum_header.parse(input, decoder.header.use_checksums)
 }
