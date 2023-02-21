@@ -49,15 +49,15 @@ _byteswap_u_int64_t (u_int64_t i)
 // GCC __forceinline macro
 #define __forceinline inline __attribute__ ((always_inline))
 
-__forceinline unsigned char
-_BitScanReverse (unsigned long *const Index, const unsigned long Mask)
+__forceinline u_int8_t
+_BitScanReverse (u_int64_t *const Index, const u_int64_t Mask)
 {
   *Index = 31 - __builtin_clz (Mask);
   return Mask ? 1 : 0;
 }
 
-__forceinline unsigned char
-_BitScanForward (unsigned long *const Index, const unsigned long Mask)
+__forceinline u_int8_t
+_BitScanForward (u_int64_t *const Index, const u_int64_t Mask)
 {
   *Index = __builtin_ctz (Mask);
   return Mask ? 1 : 0;

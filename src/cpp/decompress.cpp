@@ -3,7 +3,7 @@
 u_int32_t
 BSR (u_int32_t x)
 {
-  unsigned long index;
+  u_int64_t index;
   _BitScanReverse (&index, x);
   return index;
 }
@@ -11,7 +11,7 @@ BSR (u_int32_t x)
 u_int32_t
 BSF (u_int32_t x)
 {
-  unsigned long index;
+  u_int64_t index;
   _BitScanForward (&index, x);
   return index;
 }
@@ -21,7 +21,7 @@ Log2RoundUp (u_int32_t v)
 {
   if (v > 1)
     {
-      unsigned long idx;
+      u_int64_t idx;
       _BitScanReverse (&idx, v - 1);
       return idx + 1;
     }
@@ -432,7 +432,7 @@ DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br)
   if (!(v & 1))
     {
       p--;
-      unsigned long q;
+      u_int64_t q;
       _BitScanForward (&q, v);
       bitpos = 8 - q;
     }
