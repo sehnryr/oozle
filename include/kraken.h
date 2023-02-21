@@ -49,9 +49,6 @@ bool Kraken_ProcessLzRuns_Type1 (KrakenLzTable *lzt, u_int8_t *dst,
                                  u_int8_t *dst_end, u_int8_t *dst_start);
 bool Kraken_ProcessLzRuns (int32_t mode, u_int8_t *dst, int32_t dst_size,
                            int32_t offset, KrakenLzTable *lztable);
-int32_t Kraken_DecodeRecursive (const u_int8_t *src, size_t src_size,
-                                u_int8_t *output, int32_t output_size,
-                                u_int8_t *scratch, u_int8_t *scratch_end);
 int32_t Kraken_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end,
                               u_int8_t *dst_start, const u_int8_t *src,
                               const u_int8_t *src_end, u_int8_t *scratch,
