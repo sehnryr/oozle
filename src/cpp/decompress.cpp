@@ -1298,7 +1298,6 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
 {
   const u_int8_t *src_in = src;
   const u_int8_t *src_end = src + src_bytes_left;
-  OozleQuantumHeader qhdr;
   int32_t n;
 
   if ((offset & 0x3FFFF) == 0)
@@ -1336,12 +1335,13 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
 
   if (is_kraken_decoder)
     {
-      src = Oozle_ParseQuantumHeader (&qhdr, src,
+      src = Oozle_ParseQuantumHeader (&decoder.quantum_header, src,
                                       decoder.header.use_checksums);
     }
   else
     {
-      src = LZNA_ParseQuantumHeader (&qhdr, src, decoder.header.use_checksums,
+      src = LZNA_ParseQuantumHeader (&decoder.quantum_header, src,
+                                     decoder.header.use_checksums,
                                      dst_bytes_left);
     }
 
@@ -1349,27 +1349,29 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
     return false;
 
   // Too few bytes in buffer to make any progress?
-  if ((uintptr_t)(src_end - src) < qhdr.compressed_size)
+  if ((uintptr_t)(src_end - src) < decoder.quantum_header.compressed_size)
     {
       decoder.input_read = decoder.output_written = 0;
       return true;
     }
 
-  if (qhdr.compressed_size > (u_int32_t)dst_bytes_left)
+  if (decoder.quantum_header.compressed_size > (u_int32_t)dst_bytes_left)
     return false;
 
-  if (qhdr.compressed_size == 0)
+  if (decoder.quantum_header.compressed_size == 0)
     {
-      if (qhdr.whole_match_distance != 0)
+      if (decoder.quantum_header.whole_match_distance != 0)
         {
-          if (qhdr.whole_match_distance > (u_int32_t)offset)
+          if (decoder.quantum_header.whole_match_distance > (u_int32_t)offset)
             return false;
-          Oozle_CopyWholeMatch (dst_start + offset, qhdr.whole_match_distance,
+          Oozle_CopyWholeMatch (dst_start + offset,
+                                decoder.quantum_header.whole_match_distance,
                                 dst_bytes_left);
         }
       else
         {
-          memset (dst_start + offset, qhdr.checksum, dst_bytes_left);
+          memset (dst_start + offset, decoder.quantum_header.checksum,
+                  dst_bytes_left);
         }
       decoder.input_read = (src - src_in);
       decoder.output_written = dst_bytes_left;
@@ -1377,11 +1379,12 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
     }
 
   if (decoder.header.use_checksums
-      && (Oozle_GetCrc (src, qhdr.compressed_size) & 0xFFFFFF)
-             != qhdr.checksum)
+      && (Oozle_GetCrc (src, decoder.quantum_header.compressed_size)
+          & 0xFFFFFF)
+             != decoder.quantum_header.checksum)
     return false;
 
-  if (qhdr.compressed_size == dst_bytes_left)
+  if (decoder.quantum_header.compressed_size == dst_bytes_left)
     {
       memmove (dst_start + offset, src, dst_bytes_left);
       decoder.input_read = (src - src_in) + dst_bytes_left;
@@ -1393,7 +1396,8 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
     {
       n = Kraken_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          src, src + decoder.quantum_header.compressed_size,
+          decoder.scratch.data (),
           decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else if (decoder.header.decoder_type == OozleDecoderType::LZNA)
@@ -1403,10 +1407,10 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
           decoder.header.restart_decoder = false;
           LZNA_InitLookup ((LznaState *)decoder.scratch.data ());
         }
-      n = LZNA_DecodeQuantum (dst_start + offset,
-                              dst_start + offset + dst_bytes_left, dst_start,
-                              src, src + qhdr.compressed_size,
-                              (LznaState *)decoder.scratch.data ());
+      n = LZNA_DecodeQuantum (
+          dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
+          src, src + decoder.quantum_header.compressed_size,
+          (LznaState *)decoder.scratch.data ());
     }
   else if (decoder.header.decoder_type == OozleDecoderType::Bitknit)
     {
@@ -1416,22 +1420,24 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
           BitknitState_Init ((BitknitState *)decoder.scratch.data ());
         }
       n = (int32_t)Bitknit_Decode (
-          src, src + qhdr.compressed_size, dst_start + offset,
-          dst_start + offset + dst_bytes_left, dst_start,
+          src, src + decoder.quantum_header.compressed_size,
+          dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           (BitknitState *)decoder.scratch.data ());
     }
   else if (decoder.header.decoder_type == OozleDecoderType::Mermaid)
     {
       n = Mermaid_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          src, src + decoder.quantum_header.compressed_size,
+          decoder.scratch.data (),
           decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else if (decoder.header.decoder_type == OozleDecoderType::Leviathan)
     {
       n = Leviathan_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
-          src, src + qhdr.compressed_size, decoder.scratch.data (),
+          src, src + decoder.quantum_header.compressed_size,
+          decoder.scratch.data (),
           decoder.scratch.data () + decoder.scratch.max_size ());
     }
   else
@@ -1439,7 +1445,7 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
       return false;
     }
 
-  if (n != qhdr.compressed_size)
+  if (n != decoder.quantum_header.compressed_size)
     return false;
 
   decoder.input_read = (src - src_in) + n;

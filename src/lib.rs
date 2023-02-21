@@ -41,6 +41,7 @@ mod ffi {
         pub output_written: u32,
         pub scratch: [u8; 0x6C000],
         pub header: OozleHeader,
+        pub quantum_header: OozleQuantumHeader,
     }
 
     // Rust types and signatures exposed to C++.

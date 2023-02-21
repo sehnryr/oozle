@@ -20,6 +20,7 @@ impl Default for ffi::OozleDecoder {
             output_written: 0,
             scratch: [0; 0x6C000],
             header: ffi::OozleHeader::default(),
+            quantum_header: ffi::OozleQuantumHeader::default(),
         }
     }
 }
