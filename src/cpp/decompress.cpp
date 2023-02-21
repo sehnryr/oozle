@@ -32,29 +32,6 @@ Log2RoundUp (u_int32_t v)
 }
 
 const u_int8_t *
-Oozle_ParseHeader (OozleHeader *hdr, const u_int8_t *p)
-{
-  int32_t b = p[0];
-  if ((b & 0xF) == 0xC)
-    {
-      if (((b >> 4) & 3) != 0)
-        return NULL;
-      hdr->restart_decoder = (b >> 7) & 1;
-      hdr->uncompressed = (b >> 6) & 1;
-      b = p[1];
-      hdr->decoder_type = b & 0x7F;
-      hdr->use_checksums = !!(b >> 7);
-      if (hdr->decoder_type != 6 && hdr->decoder_type != 10
-          && hdr->decoder_type != 5 && hdr->decoder_type != 11
-          && hdr->decoder_type != 12)
-        return NULL;
-      return p + 2;
-    }
-
-  return NULL;
-}
-
-const u_int8_t *
 Oozle_ParseQuantumHeader (OozleQuantumHeader *hdr, const u_int8_t *p,
                           bool use_checksum)
 {
@@ -1326,14 +1303,20 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
 
   if ((offset & 0x3FFFF) == 0)
     {
-      src = Oozle_ParseHeader (&decoder.header, src);
-      if (!src)
-        return false;
+      try
+        {
+          src += parse_header (decoder, rust::Slice (src, src_bytes_left));
+        }
+      catch (const std::exception &e)
+        {
+          return false;
+        }
     }
 
   bool is_kraken_decoder
-      = (decoder.header.decoder_type == 6 || decoder.header.decoder_type == 10
-         || decoder.header.decoder_type == 12);
+      = (decoder.header.decoder_type == OozleDecoderType::Kraken
+         || decoder.header.decoder_type == OozleDecoderType::Mermaid
+         || decoder.header.decoder_type == OozleDecoderType::Leviathan);
 
   int32_t dst_bytes_left
       = (int32_t)MIN (is_kraken_decoder ? 0x40000 : 0x4000, dst_bytes_left_in);
@@ -1406,14 +1389,14 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
       return true;
     }
 
-  if (decoder.header.decoder_type == 6)
+  if (decoder.header.decoder_type == OozleDecoderType::Kraken)
     {
       n = Kraken_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           src, src + qhdr.compressed_size, decoder.scratch.data (),
           decoder.scratch.data () + decoder.scratch.max_size ());
     }
-  else if (decoder.header.decoder_type == 5)
+  else if (decoder.header.decoder_type == OozleDecoderType::LZNA)
     {
       if (decoder.header.restart_decoder)
         {
@@ -1425,7 +1408,7 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
                               src, src + qhdr.compressed_size,
                               (LznaState *)decoder.scratch.data ());
     }
-  else if (decoder.header.decoder_type == 11)
+  else if (decoder.header.decoder_type == OozleDecoderType::Bitknit)
     {
       if (decoder.header.restart_decoder)
         {
@@ -1437,14 +1420,14 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
           dst_start + offset + dst_bytes_left, dst_start,
           (BitknitState *)decoder.scratch.data ());
     }
-  else if (decoder.header.decoder_type == 10)
+  else if (decoder.header.decoder_type == OozleDecoderType::Mermaid)
     {
       n = Mermaid_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
           src, src + qhdr.compressed_size, decoder.scratch.data (),
           decoder.scratch.data () + decoder.scratch.max_size ());
     }
-  else if (decoder.header.decoder_type == 12)
+  else if (decoder.header.decoder_type == OozleDecoderType::Leviathan)
     {
       n = Leviathan_DecodeQuantum (
           dst_start + offset, dst_start + offset + dst_bytes_left, dst_start,
