@@ -1476,24 +1476,33 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
 }
 
 int32_t
-Oozle_Decompress (const u_int8_t *input, size_t input_len, u_int8_t *output,
-                  size_t output_len)
+Oozle_Decompress (rust::Slice<const u_int8_t> input,
+                  rust::Slice<u_int8_t> output)
 {
-  OozleDecoder decoder = OozleDecoderCreate ();
+  const u_int8_t *input_ptr = input.data ();
+  u_int8_t *output_ptr = output.data ();
+
+  size_t input_len = input.size ();
+  size_t output_len = output.size ();
+
+  int32_t input_offset = 0;
   int32_t output_offset = 0;
+
+  OozleDecoder decoder = OozleDecoderCreate ();
 
   while (output_len != 0)
     {
-      if (!Oozle_DecodeStep (decoder, output, output_offset, output_len, input,
-                             input_len))
+      if (!Oozle_DecodeStep (decoder, output_ptr, output_offset, output_len,
+                             input_ptr + input_offset, input_len))
         goto FAIL;
 
       if (decoder.input_read == 0)
         goto FAIL;
 
-      input += decoder.input_read;
       input_len -= decoder.input_read;
       output_len -= decoder.output_written;
+
+      input_offset += decoder.input_read;
       output_offset += decoder.output_written;
     }
 

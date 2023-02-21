@@ -43,11 +43,6 @@ mod ffi {
     extern "C++" {
         include!("oozle/include/decompress.h");
 
-        unsafe fn Oozle_Decompress(
-            input: *const u8,
-            input_len: usize,
-            output: *mut u8,
-            output_len: usize,
-        ) -> i32;
+        unsafe fn Oozle_Decompress(input: &[u8], output: &mut [u8]) -> i32;
     }
 }
