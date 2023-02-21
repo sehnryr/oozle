@@ -264,3 +264,37 @@ BitReader_ReadLengthB (BitReader *bits, u_int32_t *v)
   BitReader_RefillBackwards (bits);
   return true;
 }
+
+int32_t
+BitReader_ReadFluff (BitReader *bits, int32_t num_symbols)
+{
+  unsigned long y;
+
+  if (num_symbols == 256)
+    return 0;
+
+  int32_t x = 257 - num_symbols;
+  if (x > num_symbols)
+    x = num_symbols;
+
+  x *= 2;
+
+  _BitScanReverse (&y, x - 1);
+  y += 1;
+
+  u_int32_t v = bits->bits >> (32 - y);
+  u_int32_t z = (1 << y) - x;
+
+  if ((v >> 1) >= z)
+    {
+      bits->bits <<= y;
+      bits->bitpos += y;
+      return v - z;
+    }
+  else
+    {
+      bits->bits <<= (y - 1);
+      bits->bitpos += (y - 1);
+      return (v >> 1);
+    }
+}

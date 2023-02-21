@@ -107,12 +107,6 @@ struct NewHuffLut
   u_int8_t bits2sym[2048 + 16];
 };
 
-struct BitReader2
-{
-  const u_int8_t *p, *p_end;
-  u_int32_t bitpos;
-};
-
 static const u_int32_t kRiceCodeBits2Value[256] = {
   0x80000000, 0x00000007, 0x10000006, 0x00000006, 0x20000005, 0x00000105,
   0x10000005, 0x00000005, 0x30000004, 0x00000204, 0x10000104, 0x00000104,
@@ -205,8 +199,6 @@ bool Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut);
 
 int32_t Huff_ReadCodeLengthsOld (BitReader *bits, u_int8_t *syms,
                                  u_int32_t *code_prefix);
-
-int32_t BitReader_ReadFluff (BitReader *bits, int32_t num_symbols);
 
 bool DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br);
 bool DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,

@@ -12,6 +12,12 @@ typedef struct BitReader
   int32_t bitpos;
 } BitReader;
 
+struct BitReader2
+{
+  const u_int8_t *p, *p_end;
+  u_int32_t bitpos;
+};
+
 void BitReader_Refill (BitReader *bits);
 void BitReader_RefillBackwards (BitReader *bits);
 int32_t BitReader_ReadBit (BitReader *bits);
@@ -26,3 +32,4 @@ u_int32_t BitReader_ReadDistance (BitReader *bits, u_int32_t v);
 u_int32_t BitReader_ReadDistanceB (BitReader *bits, u_int32_t v);
 bool BitReader_ReadLength (BitReader *bits, u_int32_t *v);
 bool BitReader_ReadLengthB (BitReader *bits, u_int32_t *v);
+int32_t BitReader_ReadFluff (BitReader *bits, int32_t num_symbols);
