@@ -213,9 +213,6 @@ static u_int32_t bitmasks[32]
         0x1ffffff,  0x3ffffff, 0x7ffffff, 0xfffffff, 0x1fffffff, 0x3fffffff,
         0x7fffffff, 0xffffffff };
 
-void *MallocAligned (size_t size, size_t alignment);
-void FreeAligned (void *p);
-
 u_int32_t BSR (u_int32_t x); // Bit scan reverse
 u_int32_t BSF (u_int32_t x); // Bit scan forward
 
