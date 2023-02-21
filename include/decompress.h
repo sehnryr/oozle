@@ -160,5 +160,3 @@ void Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length);
 bool Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
                        size_t dst_bytes_left_in, const u_int8_t *src,
                        size_t src_bytes_left);
-int32_t Oozle_Decompress (rust::Slice<const u_int8_t> input,
-                          rust::Slice<u_int8_t> output);

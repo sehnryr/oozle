@@ -10,8 +10,3 @@ impl Default for ffi::OozleDecoder {
         }
     }
 }
-
-/* Rust types and signatures exposed to C++ */
-pub fn default_oozle_decoder() -> ffi::OozleDecoder {
-    ffi::OozleDecoder::default()
-}
