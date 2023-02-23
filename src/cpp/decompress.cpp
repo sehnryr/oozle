@@ -31,79 +31,6 @@ Log2RoundUp (u_int32_t v)
     }
 }
 
-const u_int8_t *
-LZNA_ParseWholeMatchInfo (const u_int8_t *p, u_int32_t *dist)
-{
-  u_int32_t v = _byteswap_ushort (*(u_int16_t *)p);
-
-  if (v < 0x8000)
-    {
-      u_int32_t x = 0, b, pos = 0;
-      for (;;)
-        {
-          b = p[2];
-          p += 1;
-          if (b & 0x80)
-            break;
-          x += (b + 0x80) << pos;
-          pos += 7;
-        }
-      x += (b - 128) << pos;
-      *dist = 0x8000 + v + (x << 15) + 1;
-      return p + 2;
-    }
-  else
-    {
-      *dist = v - 0x8000 + 1;
-      return p + 2;
-    }
-}
-
-const u_int8_t *
-LZNA_ParseQuantumHeader (OozleQuantumHeader *hdr, const u_int8_t *p,
-                         bool use_checksum, int32_t raw_len)
-{
-  u_int32_t v = (p[0] << 8) | p[1];
-  u_int32_t size = v & 0x3FFF;
-  if (size != 0x3fff)
-    {
-      hdr->compressed_size = size + 1;
-      hdr->flag1 = (v >> 14) & 1;
-      hdr->flag2 = (v >> 15) & 1;
-      if (use_checksum)
-        {
-          hdr->checksum = (p[2] << 16) | (p[3] << 8) | p[4];
-          return p + 5;
-        }
-      else
-        {
-          return p + 2;
-        }
-    }
-  v >>= 14;
-  if (v == 0)
-    {
-      p = LZNA_ParseWholeMatchInfo (p + 2, &hdr->whole_match_distance);
-      hdr->compressed_size = 0;
-      return p;
-    }
-  if (v == 1)
-    {
-      // memset
-      hdr->checksum = p[2];
-      hdr->compressed_size = 0;
-      hdr->whole_match_distance = 0;
-      return p + 3;
-    }
-  if (v == 2)
-    {
-      // uncompressed
-      hdr->compressed_size = raw_len;
-      return p + 2;
-    }
-  return NULL;
-}
-
 u_int32_t
 Oozle_GetCrc (const u_int8_t *p, size_t p_size)
 {
@@ -1306,9 +1233,8 @@ Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
     }
   else
     {
-      src = LZNA_ParseQuantumHeader (&decoder.quantum_header, src,
-                                     decoder.header.use_checksums,
-                                     dst_bytes_left);
+      src += parse_lzna_quantum_header (
+          decoder, rust::Slice (src, src_end - src), dst_bytes_left);
     }
 
   if (!src || src > src_end)
