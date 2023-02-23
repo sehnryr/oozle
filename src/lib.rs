@@ -6,7 +6,7 @@ mod decoder;
 mod decompress;
 mod header;
 
-use decoder::{parse_header, parse_quantum_header};
+use decoder::{parse_header, parse_lzna_quantum_header, parse_quantum_header};
 
 pub use decompress::decompress;
 
@@ -48,6 +48,11 @@ mod ffi {
     extern "Rust" {
         fn parse_header(decoder: &mut OozleDecoder, input: &[u8]) -> Result<usize>;
         fn parse_quantum_header(decoder: &mut OozleDecoder, input: &[u8]) -> Result<usize>;
+        fn parse_lzna_quantum_header(
+            decoder: &mut OozleDecoder,
+            input: &[u8],
+            input_len: usize,
+        ) -> Result<usize>;
     }
 
     // C++ types and signatures exposed to Rust.
