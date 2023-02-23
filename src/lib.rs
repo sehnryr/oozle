@@ -2,6 +2,7 @@
 ///
 /// A Rust library for decompressing Kraken, Mermaid, Selkie, Leviathan,
 /// LZNA and Bitknit compressed buffers.
+
 mod decoder;
 mod decompress;
 mod header;
@@ -51,7 +52,7 @@ mod ffi {
         fn parse_lzna_quantum_header(
             decoder: &mut OozleDecoder,
             input: &[u8],
-            input_len: usize,
+            output_len: usize,
         ) -> Result<usize>;
     }
 

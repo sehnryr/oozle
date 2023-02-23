@@ -23,8 +23,13 @@ impl ffi::OozleDecoder {
         self.quantum_header.parse(input, self.header.use_checksums)
     }
 
-    pub fn parse_lzna_quantum_header(&mut self, input: &[u8], input_len: usize) -> Result<usize, io::Error> {
-        self.quantum_header.parse_lzna(input, self.header.use_checksums, input_len)
+    pub fn parse_lzna_quantum_header(
+        &mut self,
+        input: &[u8],
+        output_len: usize,
+    ) -> Result<usize, io::Error> {
+        self.quantum_header
+            .parse_lzna(input, self.header.use_checksums, output_len)
     }
 }
 
@@ -55,7 +60,7 @@ pub fn parse_quantum_header(
 pub fn parse_lzna_quantum_header(
     decoder: &mut ffi::OozleDecoder,
     input: &[u8],
-    input_len: usize,
+    output_len: usize,
 ) -> Result<usize, io::Error> {
-    decoder.parse_lzna_quantum_header(input, input_len)
+    decoder.parse_lzna_quantum_header(input, output_len)
 }
