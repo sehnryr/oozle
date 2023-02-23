@@ -70,7 +70,7 @@ impl ffi::OozleQuantumHeader {
         &mut self,
         input: &[u8],
         use_checksum: bool,
-        input_len: usize,
+        output_len: usize,
     ) -> Result<usize, io::Error> {
         let mut v: u32 = u32::from_be_bytes([0, 0, input[0], input[1]]);
         let size: usize = (v & 0x3FFF) as usize;
@@ -124,7 +124,7 @@ impl ffi::OozleQuantumHeader {
             return Ok(3);
         }
         if v == 2 {
-            self.compressed_size = input_len as u32;
+            self.compressed_size = output_len as u32;
             return Ok(2);
         }
 
