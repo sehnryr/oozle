@@ -39,9 +39,9 @@ impl Default for ffi::OozleHeader {
 impl ffi::OozleQuantumHeader {
     pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize, io::Error> {
         let mut v: u32 = u32::from_be_bytes([0, input[0], input[1], input[2]]);
-        let size: usize = (v & 0xFFFF) as usize;
+        let size: usize = (v & 0x3FFFF) as usize;
 
-        if size != 0xFFFF {
+        if size != 0x3FFFF {
             self.compressed_size = size as u32 + 1;
             self.flag1 = ((v >> 18) & 1) as u8;
             self.flag2 = ((v >> 19) & 1) as u8;
