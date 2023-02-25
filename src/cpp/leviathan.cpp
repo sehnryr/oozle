@@ -674,14 +674,13 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
               if (matchlen > (uintptr_t)(dst_end - 8 - dst))
                 return false; // no space in buf
               COPY_64 (dst + 16, copyfrom + 16);
-              do
+              while (matchlen > 24)
                 {
                   COPY_64 (dst + 24, copyfrom + 24);
                   matchlen -= 8;
                   dst += 8;
                   copyfrom += 8;
                 }
-              while (matchlen > 24);
             }
           dst = next_dst;
         }
