@@ -486,14 +486,13 @@ Kraken_ProcessLzRuns_Type1 (KrakenLzTable *lzt, u_int8_t *dst,
           COPY_64 (dst, copyfrom);
           COPY_64 (dst + 8, copyfrom + 8);
           COPY_64 (dst + 16, copyfrom + 16);
-          do
+          while (matchlen > 24)
             {
               COPY_64 (dst + 24, copyfrom + 24);
               matchlen -= 8;
               dst += 8;
               copyfrom += 8;
             }
-          while (matchlen > 24);
           dst += matchlen;
         }
     }
