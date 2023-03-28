@@ -1,8 +1,8 @@
 use anyhow::{Error, Result};
 
-use super::decoder_type::DecoderType;
+use super::DecoderType;
 
-pub struct Header {
+pub(super) struct Header {
     pub decoder_type: DecoderType,
     pub restart_decoder: bool,
     pub uncompressed: bool,

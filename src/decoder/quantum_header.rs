@@ -1,6 +1,6 @@
 use anyhow::{Error, Result};
 
-pub struct QuantumHeader {
+pub(super) struct QuantumHeader {
     pub compressed_size: u32,
     pub checksum: u32,
     pub flag1: u8,

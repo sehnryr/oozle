@@ -4,16 +4,16 @@ use log::{debug, trace, warn};
 use crate::ffi;
 
 use super::common::{copy_whole_match, get_crc};
-use super::decoder_type::DecoderType;
 use super::header::Header;
 use super::quantum_header::QuantumHeader;
+use super::DecoderType;
 
 pub struct Decoder {
     pub input_read: u32,
     pub output_written: u32,
-    pub scratch: [u8; 0x6C000],
-    pub header: Header,
-    pub quantum_header: QuantumHeader,
+    scratch: [u8; 0x6C000],
+    header: Header,
+    quantum_header: QuantumHeader,
 }
 
 impl Decoder {
