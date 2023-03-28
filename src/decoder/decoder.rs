@@ -3,19 +3,12 @@ use std::io;
 use anyhow::{Error, Result};
 use log::{debug, trace, warn};
 
-use crate::common::{copy_whole_match, get_crc};
 use crate::ffi;
-use crate::header::{Header, QuantumHeader};
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum DecoderType {
-    LZNA = 5,
-    Kraken = 6,
-    Mermaid = 10,
-    Bitknit = 11,
-    Leviathan = 12,
-    Unknown = 0,
-}
+use super::common::{copy_whole_match, get_crc};
+use super::decoder_type::DecoderType;
+use super::header::Header;
+use super::quantum_header::QuantumHeader;
 
 pub struct Decoder {
     pub input_read: u32,
@@ -23,19 +16,6 @@ pub struct Decoder {
     pub scratch: [u8; 0x6C000],
     pub header: Header,
     pub quantum_header: QuantumHeader,
-}
-
-impl From<u8> for DecoderType {
-    fn from(value: u8) -> Self {
-        match value {
-            5 => DecoderType::LZNA,
-            6 => DecoderType::Kraken,
-            10 => DecoderType::Mermaid,
-            11 => DecoderType::Bitknit,
-            12 => DecoderType::Leviathan,
-            _ => DecoderType::Unknown,
-        }
-    }
 }
 
 impl Decoder {
