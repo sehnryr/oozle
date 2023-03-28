@@ -1,4 +1,4 @@
-use std::io;
+use anyhow::{Error, Result};
 
 pub struct QuantumHeader {
     pub compressed_size: u32,
@@ -9,7 +9,7 @@ pub struct QuantumHeader {
 }
 
 impl QuantumHeader {
-    pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize, io::Error> {
+    pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize> {
         let mut v: u32 = u32::from_be_bytes([0, input[0], input[1], input[2]]);
         let size: usize = (v & 0x3FFFF) as usize;
 
@@ -35,7 +35,7 @@ impl QuantumHeader {
             return Ok(4);
         }
 
-        Err(io::Error::from(io::ErrorKind::InvalidData))
+        Err(Error::msg("Invalid data"))
     }
 
     pub fn parse_lzna(
@@ -43,7 +43,7 @@ impl QuantumHeader {
         input: &[u8],
         use_checksum: bool,
         output_len: usize,
-    ) -> Result<usize, io::Error> {
+    ) -> Result<usize> {
         let mut v: u32 = u32::from_be_bytes([0, 0, input[0], input[1]]);
         let size: usize = (v & 0x3FFF) as usize;
 
@@ -100,7 +100,7 @@ impl QuantumHeader {
             return Ok(2);
         }
 
-        Err(io::Error::from(io::ErrorKind::InvalidData))
+        Err(Error::msg("Invalid data"))
     }
 }
 

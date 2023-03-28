@@ -1,5 +1,3 @@
-use std::io;
-
 use anyhow::{Error, Result};
 use log::{debug, trace, warn};
 
@@ -19,19 +17,15 @@ pub struct Decoder {
 }
 
 impl Decoder {
-    pub fn parse_header(&mut self, input: &[u8]) -> Result<usize, io::Error> {
+    pub fn parse_header(&mut self, input: &[u8]) -> Result<usize> {
         self.header.parse(input)
     }
 
-    pub fn parse_quantum_header(&mut self, input: &[u8]) -> Result<usize, io::Error> {
+    pub fn parse_quantum_header(&mut self, input: &[u8]) -> Result<usize> {
         self.quantum_header.parse(input, self.header.use_checksums)
     }
 
-    pub fn parse_lzna_quantum_header(
-        &mut self,
-        input: &[u8],
-        output_len: usize,
-    ) -> Result<usize, io::Error> {
+    pub fn parse_lzna_quantum_header(&mut self, input: &[u8], output_len: usize) -> Result<usize> {
         self.quantum_header
             .parse_lzna(input, self.header.use_checksums, output_len)
     }

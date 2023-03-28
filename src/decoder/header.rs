@@ -1,4 +1,4 @@
-use std::io;
+use anyhow::{Error, Result};
 
 use super::decoder_type::DecoderType;
 
@@ -10,11 +10,11 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn parse(&mut self, input: &[u8]) -> Result<usize, io::Error> {
+    pub fn parse(&mut self, input: &[u8]) -> Result<usize> {
         let mut header_byte: u8 = input[0];
 
         if header_byte & 0xF != 0xC || (header_byte >> 4) & 3 != 0 {
-            return Err(io::Error::from(io::ErrorKind::InvalidData));
+            return Err(Error::msg("Invalid data"));
         }
 
         self.restart_decoder = (header_byte >> 7) & 1 != 0;
@@ -26,7 +26,7 @@ impl Header {
         self.use_checksums = (header_byte >> 7) & 1 != 0;
 
         if self.decoder_type == DecoderType::Unknown {
-            return Err(io::Error::from(io::ErrorKind::InvalidData));
+            return Err(Error::msg("Invalid data"));
         }
 
         Ok(2)
