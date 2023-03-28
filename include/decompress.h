@@ -106,8 +106,6 @@ u_int32_t BSF (u_int32_t x); // Bit scan forward
 int32_t CountLeadingZeros (u_int32_t bits);
 int32_t Log2RoundUp (u_int32_t v);
 
-u_int32_t Oozle_GetCrc (const u_int8_t *p, size_t p_size);
-
 bool Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut);
 
 bool DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br);
@@ -145,8 +143,3 @@ int32_t Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
 
 void CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
                                 int32_t scale, const u_int8_t *low_bits);
-
-void Oozle_CopyWholeMatch (u_int8_t *dst, u_int32_t offset, size_t length);
-bool Oozle_DecodeStep (OozleDecoder &decoder, u_int8_t *dst_start, int32_t offset,
-                       size_t dst_bytes_left_in, const u_int8_t *src,
-                       size_t src_bytes_left);

@@ -1,7 +1,23 @@
-use crate::ffi;
 use std::io;
 
-impl ffi::OozleHeader {
+use crate::decoder::OozleDecoderType;
+
+pub struct OozleHeader {
+    pub decoder_type: OozleDecoderType,
+    pub restart_decoder: bool,
+    pub uncompressed: bool,
+    pub use_checksums: bool,
+}
+
+pub struct OozleQuantumHeader {
+    pub compressed_size: u32,
+    pub checksum: u32,
+    pub flag1: u8,
+    pub flag2: u8,
+    pub whole_match_distance: u32,
+}
+
+impl OozleHeader {
     pub fn parse(&mut self, input: &[u8]) -> Result<usize, io::Error> {
         let mut header_byte: u8 = input[0];
 
@@ -14,10 +30,10 @@ impl ffi::OozleHeader {
 
         header_byte = input[1];
 
-        self.decoder_type = ffi::OozleDecoderType::from(header_byte & 0xF);
+        self.decoder_type = OozleDecoderType::from(header_byte & 0xF);
         self.use_checksums = (header_byte >> 7) & 1 != 0;
 
-        if self.decoder_type == ffi::OozleDecoderType::Unknown {
+        if self.decoder_type == OozleDecoderType::Unknown {
             return Err(io::Error::from(io::ErrorKind::InvalidData));
         }
 
@@ -25,10 +41,10 @@ impl ffi::OozleHeader {
     }
 }
 
-impl Default for ffi::OozleHeader {
+impl Default for OozleHeader {
     fn default() -> Self {
         Self {
-            decoder_type: ffi::OozleDecoderType::Unknown,
+            decoder_type: OozleDecoderType::Unknown,
             restart_decoder: false,
             uncompressed: false,
             use_checksums: false,
@@ -36,7 +52,7 @@ impl Default for ffi::OozleHeader {
     }
 }
 
-impl ffi::OozleQuantumHeader {
+impl OozleQuantumHeader {
     pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize, io::Error> {
         let mut v: u32 = u32::from_be_bytes([0, input[0], input[1], input[2]]);
         let size: usize = (v & 0x3FFFF) as usize;
@@ -132,7 +148,7 @@ impl ffi::OozleQuantumHeader {
     }
 }
 
-impl Default for ffi::OozleQuantumHeader {
+impl Default for OozleQuantumHeader {
     fn default() -> Self {
         Self {
             compressed_size: 0,
