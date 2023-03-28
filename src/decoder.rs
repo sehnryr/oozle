@@ -5,10 +5,10 @@ use log::{debug, trace, warn};
 
 use crate::common::{copy_whole_match, get_crc};
 use crate::ffi;
-use crate::header::{OozleHeader, OozleQuantumHeader};
+use crate::header::{Header, QuantumHeader};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum OozleDecoderType {
+pub enum DecoderType {
     LZNA = 5,
     Kraken = 6,
     Mermaid = 10,
@@ -17,28 +17,28 @@ pub enum OozleDecoderType {
     Unknown = 0,
 }
 
-pub struct OozleDecoder {
+pub struct Decoder {
     pub input_read: u32,
     pub output_written: u32,
     pub scratch: [u8; 0x6C000],
-    pub header: OozleHeader,
-    pub quantum_header: OozleQuantumHeader,
+    pub header: Header,
+    pub quantum_header: QuantumHeader,
 }
 
-impl From<u8> for OozleDecoderType {
+impl From<u8> for DecoderType {
     fn from(value: u8) -> Self {
         match value {
-            5 => OozleDecoderType::LZNA,
-            6 => OozleDecoderType::Kraken,
-            10 => OozleDecoderType::Mermaid,
-            11 => OozleDecoderType::Bitknit,
-            12 => OozleDecoderType::Leviathan,
-            _ => OozleDecoderType::Unknown,
+            5 => DecoderType::LZNA,
+            6 => DecoderType::Kraken,
+            10 => DecoderType::Mermaid,
+            11 => DecoderType::Bitknit,
+            12 => DecoderType::Leviathan,
+            _ => DecoderType::Unknown,
         }
     }
 }
 
-impl OozleDecoder {
+impl Decoder {
     pub fn parse_header(&mut self, input: &[u8]) -> Result<usize, io::Error> {
         self.header.parse(input)
     }
@@ -71,9 +71,9 @@ impl OozleDecoder {
         }
 
         // Get type of decoder
-        let is_kraken_decoder = self.header.decoder_type == OozleDecoderType::Kraken
-            || self.header.decoder_type == OozleDecoderType::Mermaid
-            || self.header.decoder_type == OozleDecoderType::Leviathan;
+        let is_kraken_decoder = self.header.decoder_type == DecoderType::Kraken
+            || self.header.decoder_type == DecoderType::Mermaid
+            || self.header.decoder_type == DecoderType::Leviathan;
 
         // Calculate the output length
         let output_len = std::cmp::min(
@@ -187,7 +187,7 @@ impl OozleDecoder {
             input_offset, output_offset
         );
         let read_bytes: i32 = match self.header.decoder_type {
-            OozleDecoderType::Kraken => ffi::Kraken_DecodeQuantum(
+            DecoderType::Kraken => ffi::Kraken_DecodeQuantum(
                 output.as_mut_ptr().add(output_offset),
                 output.as_mut_ptr().add(output_offset + output_len),
                 output.as_mut_ptr(),
@@ -198,7 +198,7 @@ impl OozleDecoder {
                 self.scratch.as_mut_ptr(),
                 self.scratch.as_mut_ptr().add(self.scratch.len()),
             ),
-            OozleDecoderType::Mermaid => ffi::Mermaid_DecodeQuantum(
+            DecoderType::Mermaid => ffi::Mermaid_DecodeQuantum(
                 output.as_mut_ptr().add(output_offset),
                 output.as_mut_ptr().add(output_offset + output_len),
                 output.as_mut_ptr(),
@@ -209,7 +209,7 @@ impl OozleDecoder {
                 self.scratch.as_mut_ptr(),
                 self.scratch.as_mut_ptr().add(self.scratch.len()),
             ),
-            OozleDecoderType::Leviathan => ffi::Leviathan_DecodeQuantum(
+            DecoderType::Leviathan => ffi::Leviathan_DecodeQuantum(
                 output.as_mut_ptr().add(output_offset),
                 output.as_mut_ptr().add(output_offset + output_len),
                 output.as_mut_ptr(),
@@ -220,7 +220,7 @@ impl OozleDecoder {
                 self.scratch.as_mut_ptr(),
                 self.scratch.as_mut_ptr().add(self.scratch.len()),
             ),
-            OozleDecoderType::LZNA => {
+            DecoderType::LZNA => {
                 if self.header.restart_decoder {
                     self.header.restart_decoder = false;
                     ffi::LZNA_InitLookup(self.scratch.as_mut_ptr() as *mut ffi::LznaState);
@@ -236,7 +236,7 @@ impl OozleDecoder {
                     self.scratch.as_mut_ptr() as *mut ffi::LznaState,
                 )
             }
-            OozleDecoderType::Bitknit => {
+            DecoderType::Bitknit => {
                 if self.header.restart_decoder {
                     self.header.restart_decoder = false;
                     ffi::BitknitState_Init(self.scratch.as_mut_ptr() as *mut ffi::BitknitState);
@@ -273,14 +273,14 @@ impl OozleDecoder {
     }
 }
 
-impl Default for OozleDecoder {
+impl Default for Decoder {
     fn default() -> Self {
         Self {
             input_read: 0,
             output_written: 0,
             scratch: [0; 0x6C000],
-            header: OozleHeader::default(),
-            quantum_header: OozleQuantumHeader::default(),
+            header: Header::default(),
+            quantum_header: QuantumHeader::default(),
         }
     }
 }

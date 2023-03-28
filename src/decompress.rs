@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::decoder::OozleDecoder;
+use crate::decoder::Decoder;
 
 /// Decompresses a Kraken, Mermaid, Selkie, Leviathan, LZNA or Bitknit
 /// compressed buffer.
@@ -20,7 +20,7 @@ pub unsafe fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize> {
     let mut input_offset: usize = 0;
     let mut output_offset: usize = 0;
 
-    let mut decoder: OozleDecoder = OozleDecoder::default();
+    let mut decoder: Decoder = Decoder::default();
 
     while output_len != 0 {
         decoder.decode_step(output, output_offset, &input[input_offset..])?;

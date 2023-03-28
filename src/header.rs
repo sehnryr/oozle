@@ -1,15 +1,15 @@
 use std::io;
 
-use crate::decoder::OozleDecoderType;
+use crate::decoder::DecoderType;
 
-pub struct OozleHeader {
-    pub decoder_type: OozleDecoderType,
+pub struct Header {
+    pub decoder_type: DecoderType,
     pub restart_decoder: bool,
     pub uncompressed: bool,
     pub use_checksums: bool,
 }
 
-pub struct OozleQuantumHeader {
+pub struct QuantumHeader {
     pub compressed_size: u32,
     pub checksum: u32,
     pub flag1: u8,
@@ -17,7 +17,7 @@ pub struct OozleQuantumHeader {
     pub whole_match_distance: u32,
 }
 
-impl OozleHeader {
+impl Header {
     pub fn parse(&mut self, input: &[u8]) -> Result<usize, io::Error> {
         let mut header_byte: u8 = input[0];
 
@@ -30,10 +30,10 @@ impl OozleHeader {
 
         header_byte = input[1];
 
-        self.decoder_type = OozleDecoderType::from(header_byte & 0xF);
+        self.decoder_type = DecoderType::from(header_byte & 0xF);
         self.use_checksums = (header_byte >> 7) & 1 != 0;
 
-        if self.decoder_type == OozleDecoderType::Unknown {
+        if self.decoder_type == DecoderType::Unknown {
             return Err(io::Error::from(io::ErrorKind::InvalidData));
         }
 
@@ -41,10 +41,10 @@ impl OozleHeader {
     }
 }
 
-impl Default for OozleHeader {
+impl Default for Header {
     fn default() -> Self {
         Self {
-            decoder_type: OozleDecoderType::Unknown,
+            decoder_type: DecoderType::Unknown,
             restart_decoder: false,
             uncompressed: false,
             use_checksums: false,
@@ -52,7 +52,7 @@ impl Default for OozleHeader {
     }
 }
 
-impl OozleQuantumHeader {
+impl QuantumHeader {
     pub fn parse(&mut self, input: &[u8], use_checksum: bool) -> Result<usize, io::Error> {
         let mut v: u32 = u32::from_be_bytes([0, input[0], input[1], input[2]]);
         let size: usize = (v & 0x3FFFF) as usize;
@@ -148,7 +148,7 @@ impl OozleQuantumHeader {
     }
 }
 
-impl Default for OozleQuantumHeader {
+impl Default for QuantumHeader {
     fn default() -> Self {
         Self {
             compressed_size: 0,
