@@ -9,8 +9,6 @@ fn main() {
         .file("src/cpp/mermaid.cpp")
         .file("src/cpp/leviathan.cpp")
         .file("src/cpp/decompress.cpp")
-        .flag("-Wno-unused-variable")
-        .flag("-Wno-unused-parameter")
         .compile("oozle");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
