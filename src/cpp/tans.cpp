@@ -32,7 +32,7 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
       BitReader2 br2;
 
       // another bit reader...
-      br2.p = bits->p - ((uint)(24 - bits->bitpos + 7) >> 3);
+      br2.p = bits->p - ((uint32_t)(24 - bits->bitpos + 7) >> 3);
       br2.p_end = bits->p_end;
       br2.bitpos = (bits->bitpos - 24) & 7;
 
