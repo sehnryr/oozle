@@ -9,6 +9,15 @@ fn main() {
         .file("src/cpp/mermaid.cpp")
         .file("src/cpp/leviathan.cpp")
         .file("src/cpp/decompress.cpp")
+
+        // GCC flags to suppress warnings
+        .flag_if_supported("-Wno-conversion-null")
+        .flag_if_supported("-Wno-sequence-point")
+        .flag_if_supported("-Wno-sign-compare")
+        .flag_if_supported("-Wno-shift-negative-value")
+        .flag_if_supported("-Wno-unused-variable")
+        .flag_if_supported("-Wno-unused-parameter")
+
         .compile("oozle");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
