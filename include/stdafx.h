@@ -54,15 +54,23 @@ _byteswap_uint64_t (uint64_t i)
 __forceinline uint8_t
 _BitScanReverse (uint64_t *const Index, const uint64_t Mask)
 {
+  #ifdef __linux__
   *Index = 31 - __builtin_clz (Mask);
   return Mask ? 1 : 0;
+  #else
+  return _BitScanReverse64 ((unsigned long *)Index, Mask);
+  #endif
 }
 
 __forceinline uint8_t
 _BitScanForward (uint64_t *const Index, const uint64_t Mask)
 {
+  #ifdef __linux__
   *Index = __builtin_ctz (Mask);
   return Mask ? 1 : 0;
+  #else
+  return _BitScanForward64 ((unsigned long *)Index, Mask);
+  #endif
 }
 
 __forceinline uint32_t
