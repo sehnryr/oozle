@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xmmintrin.h>
+#include <emmintrin.h>
 
 #define assert(x) (void)0
 
