@@ -46,8 +46,10 @@ _byteswap_uint64_t (uint64_t i)
   return j;
 }
 
+#ifdef __linux__
 // GCC __forceinline macro
 #define __forceinline inline __attribute__ ((always_inline))
+#endif
 
 __forceinline uint8_t
 _BitScanReverse (uint64_t *const Index, const uint64_t Mask)
