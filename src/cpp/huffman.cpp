@@ -2,8 +2,8 @@
 #include "oozle/include/decompress.h"
 
 int32_t
-Huff_ReadCodeLengthsOld (BitReader *bits, u_int8_t *syms,
-                         u_int32_t *code_prefix)
+Huff_ReadCodeLengthsOld (BitReader *bits, uint8_t *syms,
+                         uint32_t *code_prefix)
 {
   if (BitReader_ReadBitNoRefill (bits))
     {
@@ -11,7 +11,7 @@ Huff_ReadCodeLengthsOld (BitReader *bits, u_int8_t *syms,
       int32_t avg_bits_x4 = 32;
       int32_t forced_bits = BitReader_ReadBitsNoRefill (bits, 2);
 
-      u_int32_t thres_for_valid_gamma_bits = 1 << (31 - (20u >> forced_bits));
+      uint32_t thres_for_valid_gamma_bits = 1 << (31 - (20u >> forced_bits));
       if (BitReader_ReadBit (bits))
         goto SKIP_INITIAL_ZEROS;
       do
@@ -91,7 +91,7 @@ Huff_ReadCodeLengthsOld (BitReader *bits, u_int8_t *syms,
 
 int32_t
 Huff_ConvertToRanges (HuffRange *range, int32_t num_symbols, int32_t P,
-                      const u_int8_t *symlen, BitReader *bits)
+                      const uint8_t *symlen, BitReader *bits)
 {
   int32_t num_ranges = P >> 1, v, sym_idx = 0;
 
@@ -136,8 +136,8 @@ Huff_ConvertToRanges (HuffRange *range, int32_t num_symbols, int32_t P,
 }
 
 int32_t
-Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
-                         u_int32_t *code_prefix)
+Huff_ReadCodeLengthsNew (BitReader *bits, uint8_t *syms,
+                         uint32_t *code_prefix)
 {
   int32_t forced_bits = BitReader_ReadBitsNoRefill (bits, 2);
 
@@ -145,7 +145,7 @@ Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
 
   int32_t fluff = BitReader_ReadFluff (bits, num_symbols);
 
-  u_int8_t code_len[512];
+  uint8_t code_len[512];
   BitReader2 br2;
   br2.bitpos = (bits->bitpos - 24) & 7;
   br2.p_end = bits->p_end;
@@ -167,7 +167,7 @@ Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
 
   if (1)
     {
-      u_int32_t running_sum = 0x1e;
+      uint32_t running_sum = 0x1e;
       int32_t maxlen = 11;
       for (int32_t i = 0; i < num_symbols; i++)
         {
@@ -232,7 +232,7 @@ Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
   if (ranges <= 0)
     return -1;
 
-  u_int8_t *cp = code_len;
+  uint8_t *cp = code_len;
   for (int32_t i = 0; i < ranges; i++)
     {
       int32_t sym = range[i].symbol;
@@ -248,31 +248,31 @@ Huff_ReadCodeLengthsNew (BitReader *bits, u_int8_t *syms,
 }
 
 bool
-Huff_MakeLut (const u_int32_t *prefix_org, const u_int32_t *prefix_cur,
-              NewHuffLut *hufflut, u_int8_t *syms)
+Huff_MakeLut (const uint32_t *prefix_org, const uint32_t *prefix_cur,
+              NewHuffLut *hufflut, uint8_t *syms)
 {
-  u_int32_t currslot = 0;
-  for (u_int32_t i = 1; i < 11; i++)
+  uint32_t currslot = 0;
+  for (uint32_t i = 1; i < 11; i++)
     {
-      u_int32_t start = prefix_org[i];
-      u_int32_t count = prefix_cur[i] - start;
+      uint32_t start = prefix_org[i];
+      uint32_t count = prefix_cur[i] - start;
       if (count)
         {
-          u_int32_t stepsize = 1 << (11 - i);
-          u_int32_t num_to_set = count << (11 - i);
+          uint32_t stepsize = 1 << (11 - i);
+          uint32_t num_to_set = count << (11 - i);
           if (currslot + num_to_set > 2048)
             return false;
           FillByteOverflow16 (&hufflut->bits2len[currslot], i, num_to_set);
 
-          u_int8_t *p = &hufflut->bits2sym[currslot];
-          for (u_int32_t j = 0; j != count; j++, p += stepsize)
+          uint8_t *p = &hufflut->bits2sym[currslot];
+          for (uint32_t j = 0; j != count; j++, p += stepsize)
             FillByteOverflow16 (p, syms[start + j], stepsize);
           currslot += num_to_set;
         }
     }
   if (prefix_cur[11] - prefix_org[11] != 0)
     {
-      u_int32_t num_to_set = prefix_cur[11] - prefix_org[11];
+      uint32_t num_to_set = prefix_cur[11] - prefix_org[11];
       if (currslot + num_to_set > 2048)
         return false;
       FillByteOverflow16 (&hufflut->bits2len[currslot], 11, num_to_set);

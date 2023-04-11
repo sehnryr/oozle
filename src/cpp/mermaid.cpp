@@ -1,13 +1,13 @@
 #include "oozle/include/mermaid.h"
 
 int32_t
-Mermaid_DecodeFarOffsets (const u_int8_t *src, const u_int8_t *src_end,
-                          u_int32_t *output, size_t output_size,
+Mermaid_DecodeFarOffsets (const uint8_t *src, const uint8_t *src_end,
+                          uint32_t *output, size_t output_size,
                           int64_t offset)
 {
-  const u_int8_t *src_cur = src;
+  const uint8_t *src_cur = src;
   size_t i;
-  u_int32_t off;
+  uint32_t off;
 
   if (offset < (0xC00000 - 1))
     {
@@ -45,22 +45,22 @@ Mermaid_DecodeFarOffsets (const u_int8_t *src, const u_int8_t *src_end,
 }
 
 void
-Mermaid_CombineOffs16 (u_int16_t *dst, size_t size, const u_int8_t *lo,
-                       const u_int8_t *hi)
+Mermaid_CombineOffs16 (uint16_t *dst, size_t size, const uint8_t *lo,
+                       const uint8_t *hi)
 {
   for (size_t i = 0; i != size; i++)
     dst[i] = lo[i] + hi[i] * 256;
 }
 
 bool
-Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
-                     const u_int8_t *src_end, u_int8_t *dst, int32_t dst_size,
-                     int64_t offset, u_int8_t *scratch, u_int8_t *scratch_end,
+Mermaid_ReadLzTable (int32_t mode, const uint8_t *src,
+                     const uint8_t *src_end, uint8_t *dst, int32_t dst_size,
+                     int64_t offset, uint8_t *scratch, uint8_t *scratch_end,
                      MermaidLzTable *lz)
 {
-  u_int8_t *out;
+  uint8_t *out;
   int32_t decode_count, n;
-  u_int32_t tmp, off32_size_2, off32_size_1;
+  uint32_t tmp, off32_size_2, off32_size_1;
 
   if (mode > 1)
     return false;
@@ -108,7 +108,7 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
     {
       if (src_end - src < 2)
         return false;
-      lz->cmd_stream_2_offs = *(u_int16_t *)src;
+      lz->cmd_stream_2_offs = *(uint16_t *)src;
       src += 2;
       if (lz->cmd_stream_2_offs > lz->cmd_stream_2_offs_end)
         return false;
@@ -117,11 +117,11 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
   if (src_end - src < 2)
     return false;
 
-  int32_t off16_count = *(u_int16_t *)src;
+  int32_t off16_count = *(uint16_t *)src;
   if (off16_count == 0xffff)
     {
       // off16 is entropy coded
-      u_int8_t *off16_lo, *off16_hi;
+      uint8_t *off16_lo, *off16_hi;
       int32_t off16_lo_count, off16_hi_count;
       src += 2;
       off16_hi = scratch;
@@ -145,19 +145,19 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
       if (off16_lo_count != off16_hi_count)
         return false;
       scratch = ALIGN_POINTER (scratch, 2);
-      lz->off16_stream = (u_int16_t *)scratch;
+      lz->off16_stream = (uint16_t *)scratch;
       if (scratch + off16_lo_count * 2 > scratch_end)
         return false;
       scratch += off16_lo_count * 2;
-      lz->off16_stream_end = (u_int16_t *)scratch;
-      Mermaid_CombineOffs16 ((u_int16_t *)lz->off16_stream, off16_lo_count,
+      lz->off16_stream_end = (uint16_t *)scratch;
+      Mermaid_CombineOffs16 ((uint16_t *)lz->off16_stream, off16_lo_count,
                              off16_lo, off16_hi);
     }
   else
     {
-      lz->off16_stream = (u_int16_t *)(src + 2);
+      lz->off16_stream = (uint16_t *)(src + 2);
       src += 2 + off16_count * 2;
-      lz->off16_stream_end = (u_int16_t *)src;
+      lz->off16_stream_end = (uint16_t *)src;
     }
 
   if (src_end - src < 3)
@@ -173,14 +173,14 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
         {
           if (src_end - src < 2)
             return false;
-          off32_size_1 = *(u_int16_t *)src;
+          off32_size_1 = *(uint16_t *)src;
           src += 2;
         }
       if (off32_size_2 == 4095)
         {
           if (src_end - src < 2)
             return false;
-          off32_size_2 = *(u_int16_t *)src;
+          off32_size_2 = *(uint16_t *)src;
           src += 2;
         }
       lz->off32_size_1 = off32_size_1;
@@ -191,22 +191,22 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
 
       scratch = ALIGN_POINTER (scratch, 4);
 
-      lz->off32_stream_1 = (u_int32_t *)scratch;
+      lz->off32_stream_1 = (uint32_t *)scratch;
       scratch += off32_size_1 * 4;
       // store dummy bytes after for prefetcher.
-      ((u_int64_t *)scratch)[0] = 0;
-      ((u_int64_t *)scratch)[1] = 0;
-      ((u_int64_t *)scratch)[2] = 0;
-      ((u_int64_t *)scratch)[3] = 0;
+      ((uint64_t *)scratch)[0] = 0;
+      ((uint64_t *)scratch)[1] = 0;
+      ((uint64_t *)scratch)[2] = 0;
+      ((uint64_t *)scratch)[3] = 0;
       scratch += 32;
 
-      lz->off32_stream_2 = (u_int32_t *)scratch;
+      lz->off32_stream_2 = (uint32_t *)scratch;
       scratch += off32_size_2 * 4;
       // store dummy bytes after for prefetcher.
-      ((u_int64_t *)scratch)[0] = 0;
-      ((u_int64_t *)scratch)[1] = 0;
-      ((u_int64_t *)scratch)[2] = 0;
-      ((u_int64_t *)scratch)[3] = 0;
+      ((uint64_t *)scratch)[0] = 0;
+      ((uint64_t *)scratch)[1] = 0;
+      ((uint64_t *)scratch)[2] = 0;
+      ((uint64_t *)scratch)[3] = 0;
       scratch += 32;
 
       n = Mermaid_DecodeFarOffsets (src, src_end, lz->off32_stream_1,
@@ -227,37 +227,37 @@ Mermaid_ReadLzTable (int32_t mode, const u_int8_t *src,
         return false;
       lz->off32_size_1 = 0;
       lz->off32_size_2 = 0;
-      lz->off32_stream_1 = (u_int32_t *)scratch;
-      lz->off32_stream_2 = (u_int32_t *)scratch;
+      lz->off32_stream_1 = (uint32_t *)scratch;
+      lz->off32_stream_2 = (uint32_t *)scratch;
       // store dummy bytes after for prefetcher.
-      ((u_int64_t *)scratch)[0] = 0;
-      ((u_int64_t *)scratch)[1] = 0;
-      ((u_int64_t *)scratch)[2] = 0;
-      ((u_int64_t *)scratch)[3] = 0;
+      ((uint64_t *)scratch)[0] = 0;
+      ((uint64_t *)scratch)[1] = 0;
+      ((uint64_t *)scratch)[2] = 0;
+      ((uint64_t *)scratch)[3] = 0;
     }
   lz->length_stream = src;
   return true;
 }
 
-const u_int8_t *
-Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
-               u_int8_t *dst_start, const u_int8_t *src_end,
+const uint8_t *
+Mermaid_Mode0 (uint8_t *dst, size_t dst_size, uint8_t *dst_ptr_end,
+               uint8_t *dst_start, const uint8_t *src_end,
                MermaidLzTable *lz, int32_t *saved_dist, size_t startoff)
 {
-  const u_int8_t *dst_end = dst + dst_size;
-  const u_int8_t *cmd_stream = lz->cmd_stream;
-  const u_int8_t *cmd_stream_end = lz->cmd_stream_end;
-  const u_int8_t *length_stream = lz->length_stream;
-  const u_int8_t *lit_stream = lz->lit_stream;
-  const u_int8_t *lit_stream_end = lz->lit_stream_end;
-  const u_int16_t *off16_stream = lz->off16_stream;
-  const u_int16_t *off16_stream_end = lz->off16_stream_end;
-  const u_int32_t *off32_stream = lz->off32_stream;
-  const u_int32_t *off32_stream_end = lz->off32_stream_end;
+  const uint8_t *dst_end = dst + dst_size;
+  const uint8_t *cmd_stream = lz->cmd_stream;
+  const uint8_t *cmd_stream_end = lz->cmd_stream_end;
+  const uint8_t *length_stream = lz->length_stream;
+  const uint8_t *lit_stream = lz->lit_stream;
+  const uint8_t *lit_stream_end = lz->lit_stream_end;
+  const uint16_t *off16_stream = lz->off16_stream;
+  const uint16_t *off16_stream_end = lz->off16_stream_end;
+  const uint32_t *off32_stream = lz->off32_stream;
+  const uint32_t *off32_stream_end = lz->off32_stream_end;
   intptr_t recent_offs = *saved_dist;
-  const u_int8_t *match;
+  const uint8_t *match;
   intptr_t length;
-  const u_int8_t *dst_begin = dst;
+  const uint8_t *dst_begin = dst;
 
   dst += startoff;
 
@@ -274,7 +274,7 @@ Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
           lit_stream += litlen;
           recent_offs ^= use_distance & (recent_offs ^ -new_dist);
           off16_stream
-              = (u_int16_t *)((uintptr_t)off16_stream + (use_distance & 2));
+              = (uint16_t *)((uintptr_t)off16_stream + (use_distance & 2));
           match = dst + recent_offs;
           COPY_64 (dst, match);
           COPY_64 (dst + 8, match + 8);
@@ -307,7 +307,7 @@ Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -337,7 +337,7 @@ Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -367,7 +367,7 @@ Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -419,25 +419,25 @@ Mermaid_Mode0 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
   return length_stream;
 }
 
-const u_int8_t *
-Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
-               u_int8_t *dst_start, const u_int8_t *src_end,
+const uint8_t *
+Mermaid_Mode1 (uint8_t *dst, size_t dst_size, uint8_t *dst_ptr_end,
+               uint8_t *dst_start, const uint8_t *src_end,
                MermaidLzTable *lz, int32_t *saved_dist, size_t startoff)
 {
-  const u_int8_t *dst_end = dst + dst_size;
-  const u_int8_t *cmd_stream = lz->cmd_stream;
-  const u_int8_t *cmd_stream_end = lz->cmd_stream_end;
-  const u_int8_t *length_stream = lz->length_stream;
-  const u_int8_t *lit_stream = lz->lit_stream;
-  const u_int8_t *lit_stream_end = lz->lit_stream_end;
-  const u_int16_t *off16_stream = lz->off16_stream;
-  const u_int16_t *off16_stream_end = lz->off16_stream_end;
-  const u_int32_t *off32_stream = lz->off32_stream;
-  const u_int32_t *off32_stream_end = lz->off32_stream_end;
+  const uint8_t *dst_end = dst + dst_size;
+  const uint8_t *cmd_stream = lz->cmd_stream;
+  const uint8_t *cmd_stream_end = lz->cmd_stream_end;
+  const uint8_t *length_stream = lz->length_stream;
+  const uint8_t *lit_stream = lz->lit_stream;
+  const uint8_t *lit_stream_end = lz->lit_stream_end;
+  const uint16_t *off16_stream = lz->off16_stream;
+  const uint16_t *off16_stream_end = lz->off16_stream_end;
+  const uint32_t *off32_stream = lz->off32_stream;
+  const uint32_t *off32_stream_end = lz->off32_stream_end;
   intptr_t recent_offs = *saved_dist;
-  const u_int8_t *match;
+  const uint8_t *match;
   intptr_t length;
-  const u_int8_t *dst_begin = dst;
+  const uint8_t *dst_begin = dst;
 
   dst += startoff;
 
@@ -454,7 +454,7 @@ Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
           lit_stream += litlen;
           recent_offs ^= use_distance & (recent_offs ^ -new_dist);
           off16_stream
-              = (u_int16_t *)((uintptr_t)off16_stream + (use_distance & 2));
+              = (uint16_t *)((uintptr_t)off16_stream + (use_distance & 2));
           match = dst + recent_offs;
           COPY_64 (dst, match);
           COPY_64 (dst + 8, match + 8);
@@ -487,7 +487,7 @@ Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -517,7 +517,7 @@ Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -547,7 +547,7 @@ Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
             {
               if (src_end - length_stream < 3)
                 return NULL;
-              length += (size_t) * (u_int16_t *)(length_stream + 1) * 4;
+              length += (size_t) * (uint16_t *)(length_stream + 1) * 4;
               length_stream += 2;
             }
           length_stream += 1;
@@ -602,15 +602,15 @@ Mermaid_Mode1 (u_int8_t *dst, size_t dst_size, u_int8_t *dst_ptr_end,
 }
 
 bool
-Mermaid_ProcessLzRuns (int32_t mode, const u_int8_t *src,
-                       const u_int8_t *src_end, u_int8_t *dst, size_t dst_size,
-                       u_int64_t offset, u_int8_t *dst_end, MermaidLzTable *lz)
+Mermaid_ProcessLzRuns (int32_t mode, const uint8_t *src,
+                       const uint8_t *src_end, uint8_t *dst, size_t dst_size,
+                       uint64_t offset, uint8_t *dst_end, MermaidLzTable *lz)
 {
 
   int32_t iteration = 0;
-  u_int8_t *dst_start = dst - offset;
+  uint8_t *dst_start = dst - offset;
   int32_t saved_dist = -8;
-  const u_int8_t *src_cur;
+  const uint8_t *src_cur;
 
   for (iteration = 0; iteration != 2; iteration++)
     {
@@ -660,11 +660,11 @@ Mermaid_ProcessLzRuns (int32_t mode, const u_int8_t *src,
 }
 
 int32_t
-Mermaid_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
-                       const u_int8_t *src, const u_int8_t *src_end,
-                       u_int8_t *temp, u_int8_t *temp_end)
+Mermaid_DecodeQuantum (uint8_t *dst, uint8_t *dst_end, uint8_t *dst_start,
+                       const uint8_t *src, const uint8_t *src_end,
+                       uint8_t *temp, uint8_t *temp_end)
 {
-  const u_int8_t *src_in = src;
+  const uint8_t *src_in = src;
   int32_t mode, chunkhdr, dst_count, src_used, written_bytes;
 
   while (dst_end - dst != 0)
@@ -678,7 +678,7 @@ Mermaid_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
       if (!(chunkhdr & 0x800000))
         {
           // Stored without any match copying.
-          u_int8_t *out = dst;
+          uint8_t *out = dst;
           src_used = Oozle_DecodeBytes (&out, src, src_end, &written_bytes,
                                         dst_count, false, temp, temp_end);
           if (src_used < 0 || written_bytes != dst_count)

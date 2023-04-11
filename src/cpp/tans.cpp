@@ -28,7 +28,7 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
         return false;
       int32_t fluff = BitReader_ReadFluff (bits, num_symbols);
       int32_t total_rice_values = fluff + num_symbols;
-      u_int8_t rice[512 + 16];
+      uint8_t rice[512 + 16];
       BitReader2 br2;
 
       // another bit reader...
@@ -56,12 +56,12 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
 
       BitReader_Refill (bits);
 
-      u_int32_t L = 1 << L_bits;
-      u_int8_t *cur_rice_ptr = rice;
+      uint32_t L = 1 << L_bits;
+      uint8_t *cur_rice_ptr = rice;
       int32_t average = 6;
       int32_t somesum = 0;
-      u_int8_t *tanstable_A = tans_data->A;
-      u_int32_t *tanstable_B = tans_data->B;
+      uint8_t *tanstable_A = tans_data->A;
+      uint32_t *tanstable_B = tans_data->B;
 
       for (int32_t ri = 0; ri < fluff; ri++)
         {
@@ -80,7 +80,7 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
               int32_t average_div4 = average >> 2;
               int32_t limit = 2 * average_div4;
               if (v <= limit)
-                v = average_div4 + (-(v & 1) ^ ((u_int32_t)v >> 1));
+                v = average_div4 + (-(v & 1) ^ ((uint32_t)v >> 1));
               if (limit > v)
                 limit = v;
               v += 1;
@@ -105,7 +105,7 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
     {
       bool seen[256];
       memset (seen, 0, sizeof (seen));
-      u_int32_t L = 1 << L_bits;
+      uint32_t L = 1 << L_bits;
 
       int32_t count = BitReader_ReadBitsNoRefill (bits, 3) + 1;
 
@@ -115,8 +115,8 @@ Tans_DecodeTable (BitReader *bits, int32_t L_bits, TansData *tans_data)
       if (max_delta_bits == 0 || max_delta_bits > L_bits)
         return false;
 
-      u_int8_t *tanstable_A = tans_data->A;
-      u_int32_t *tanstable_B = tans_data->B;
+      uint8_t *tanstable_A = tans_data->A;
+      uint32_t *tanstable_B = tans_data->B;
 
       int32_t weight = 0;
       int32_t total_weights = 0;
@@ -178,11 +178,11 @@ Tans_InitLut (TansData *tans_data, int32_t L_bits, TansLutEnt *lut)
   int32_t L = 1 << L_bits;
   int32_t a_used = tans_data->A_used;
 
-  u_int32_t slots_left_to_alloc = L - a_used;
+  uint32_t slots_left_to_alloc = L - a_used;
 
-  u_int32_t sa = slots_left_to_alloc >> 2;
+  uint32_t sa = slots_left_to_alloc >> 2;
   pointers[0] = lut;
-  u_int32_t sb = sa + ((slots_left_to_alloc & 3) > 0);
+  uint32_t sb = sa + ((slots_left_to_alloc & 3) > 0);
   pointers[1] = lut + sb;
   sb += sa + ((slots_left_to_alloc & 3) > 1);
   pointers[2] = lut + sb;
@@ -210,7 +210,7 @@ Tans_InitLut (TansData *tans_data, int32_t L_bits, TansLutEnt *lut)
       int32_t symbol = tans_data->B[i] >> 16;
       if (weight > 4)
         {
-          u_int32_t sym_bits = BSR (weight);
+          uint32_t sym_bits = BSR (weight);
           int32_t Z = L_bits - sym_bits;
           TansLutEnt le;
           le.symbol = symbol;
@@ -260,16 +260,16 @@ Tans_InitLut (TansData *tans_data, int32_t L_bits, TansLutEnt *lut)
       else
         {
           assert (weight > 0);
-          u_int32_t bits = ((1 << weight) - 1) << (weights_sum & 3);
+          uint32_t bits = ((1 << weight) - 1) << (weights_sum & 3);
           bits |= (bits >> 4);
           int32_t n = weight, ww = weight;
           do
             {
-              u_int32_t idx = BSF (bits);
+              uint32_t idx = BSF (bits);
               bits &= bits - 1;
               TansLutEnt *dst = pointers[idx]++;
               dst->symbol = symbol;
-              u_int32_t weight_bits = BSR (ww);
+              uint32_t weight_bits = BSR (ww);
               dst->bits_x = L_bits - weight_bits;
               dst->x = (1 << (L_bits - weight_bits)) - 1;
               dst->w = (L - 1) & (ww++ << (L_bits - weight_bits));
@@ -284,19 +284,19 @@ bool
 Tans_Decode (TansDecoderParams *params)
 {
   TansLutEnt *lut = params->lut, *e;
-  u_int8_t *dst = params->dst, *dst_end = params->dst_end;
-  const u_int8_t *ptr_f = params->ptr_f, *ptr_b = params->ptr_b;
-  u_int32_t bits_f = params->bits_f, bits_b = params->bits_b;
+  uint8_t *dst = params->dst, *dst_end = params->dst_end;
+  const uint8_t *ptr_f = params->ptr_f, *ptr_b = params->ptr_b;
+  uint32_t bits_f = params->bits_f, bits_b = params->bits_b;
   int32_t bitpos_f = params->bitpos_f, bitpos_b = params->bitpos_b;
-  u_int32_t state_0 = params->state_0, state_1 = params->state_1;
-  u_int32_t state_2 = params->state_2, state_3 = params->state_3;
-  u_int32_t state_4 = params->state_4;
+  uint32_t state_0 = params->state_0, state_1 = params->state_1;
+  uint32_t state_2 = params->state_2, state_3 = params->state_3;
+  uint32_t state_4 = params->state_4;
 
   if (ptr_f > ptr_b)
     return false;
 
 #define TANS_FORWARD_BITS()                                                   \
-  bits_f |= *(u_int32_t *)ptr_f << bitpos_f;                                  \
+  bits_f |= *(uint32_t *)ptr_f << bitpos_f;                                  \
   ptr_f += (31 - bitpos_f) >> 3;                                              \
   bitpos_f |= 24;
 
@@ -310,7 +310,7 @@ Tans_Decode (TansDecoderParams *params)
     break;
 
 #define TANS_BACKWARD_BITS()                                                  \
-  bits_b |= _byteswap_ulong (((u_int32_t *)ptr_b)[-1]) << bitpos_b;           \
+  bits_b |= _byteswap_ulong (((uint32_t *)ptr_b)[-1]) << bitpos_b;           \
   ptr_b -= (31 - bitpos_b) >> 3;                                              \
   bitpos_b |= 24;
 
@@ -349,14 +349,14 @@ Tans_Decode (TansDecoderParams *params)
   if (ptr_b - ptr_f + (bitpos_f >> 3) + (bitpos_b >> 3) != 0)
     return false;
 
-  u_int32_t states_or = state_0 | state_1 | state_2 | state_3 | state_4;
+  uint32_t states_or = state_0 | state_1 | state_2 | state_3 | state_4;
   if (states_or & ~0xFF)
     return false;
 
-  dst_end[0] = (u_int8_t)state_0;
-  dst_end[1] = (u_int8_t)state_1;
-  dst_end[2] = (u_int8_t)state_2;
-  dst_end[3] = (u_int8_t)state_3;
-  dst_end[4] = (u_int8_t)state_4;
+  dst_end[0] = (uint8_t)state_0;
+  dst_end[1] = (uint8_t)state_1;
+  dst_end[2] = (uint8_t)state_2;
+  dst_end[3] = (uint8_t)state_3;
+  dst_end[4] = (uint8_t)state_4;
   return true;
 }

@@ -1,27 +1,27 @@
 #include "oozle/include/decompress.h"
 
-u_int32_t
-BSR (u_int32_t x)
+uint32_t
+BSR (uint32_t x)
 {
-  u_int64_t index;
+  uint64_t index;
   _BitScanReverse (&index, x);
   return index;
 }
 
-u_int32_t
-BSF (u_int32_t x)
+uint32_t
+BSF (uint32_t x)
 {
-  u_int64_t index;
+  uint64_t index;
   _BitScanForward (&index, x);
   return index;
 }
 
 int32_t
-Log2RoundUp (u_int32_t v)
+Log2RoundUp (uint32_t v)
 {
   if (v > 1)
     {
-      u_int64_t idx;
+      uint64_t idx;
       _BitScanReverse (&idx, v - 1);
       return idx + 1;
     }
@@ -34,9 +34,9 @@ Log2RoundUp (u_int32_t v)
 // Rearranges elements in the input array so that bits in the index
 // get flipped.
 static void
-ReverseBitsArray2048 (const u_int8_t *input, u_int8_t *output)
+ReverseBitsArray2048 (const uint8_t *input, uint8_t *output)
 {
-  static const u_int8_t offsets[32]
+  static const uint8_t offsets[32]
       = { 0,    0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 0x10, 0x90, 0x50,
           0xD0, 0x30, 0xB0, 0x70, 0xF0, 0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8,
           0x68, 0xE8, 0x18, 0x98, 0x58, 0xD8, 0x38, 0xB8, 0x78, 0xF8 };
@@ -83,22 +83,22 @@ ReverseBitsArray2048 (const u_int8_t *input, u_int8_t *output)
 bool
 Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
 {
-  const u_int8_t *src = hr->src;
-  u_int32_t src_bits = hr->src_bits;
+  const uint8_t *src = hr->src;
+  uint32_t src_bits = hr->src_bits;
   int32_t src_bitpos = hr->src_bitpos;
 
-  const u_int8_t *src_mid = hr->src_mid;
-  u_int32_t src_mid_bits = hr->src_mid_bits;
+  const uint8_t *src_mid = hr->src_mid;
+  uint32_t src_mid_bits = hr->src_mid_bits;
   int32_t src_mid_bitpos = hr->src_mid_bitpos;
 
-  const u_int8_t *src_end = hr->src_end;
-  u_int32_t src_end_bits = hr->src_end_bits;
+  const uint8_t *src_end = hr->src_end;
+  uint32_t src_end_bits = hr->src_end_bits;
   int32_t src_end_bitpos = hr->src_end_bitpos;
 
   int32_t k, n;
 
-  u_int8_t *dst = hr->output;
-  u_int8_t *dst_end = hr->output_end;
+  uint8_t *dst = hr->output;
+  uint8_t *dst_end = hr->output_end;
 
   if (src > src_mid)
     return false;
@@ -110,14 +110,14 @@ Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
 
       while (dst < dst_end && src <= src_mid && src_mid <= src_end)
         {
-          src_bits |= *(u_int32_t *)src << src_bitpos;
+          src_bits |= *(uint32_t *)src << src_bitpos;
           src += (31 - src_bitpos) >> 3;
 
-          src_end_bits |= _byteswap_ulong (*(u_int32_t *)src_end)
+          src_end_bits |= _byteswap_ulong (*(uint32_t *)src_end)
                           << src_end_bitpos;
           src_end -= (31 - src_end_bitpos) >> 3;
 
-          src_mid_bits |= *(u_int32_t *)src_mid << src_mid_bitpos;
+          src_mid_bits |= *(uint32_t *)src_mid << src_mid_bitpos;
           src_mid += (31 - src_mid_bitpos) >> 3;
 
           src_bitpos |= 0x18;
@@ -184,7 +184,7 @@ Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
         }
       else
         {
-          src_bits |= *(u_int16_t *)src << src_bitpos;
+          src_bits |= *(uint16_t *)src << src_bitpos;
         }
       k = src_bits & 0x7FF;
       n = lut->bits2len[k];
@@ -206,10 +206,10 @@ Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
             }
           else
             {
-              u_int32_t v = *(u_int16_t *)(src_end - 2);
+              uint32_t v = *(uint16_t *)(src_end - 2);
               src_end_bits |= (((v >> 8) | (v << 8)) & 0xffff)
                               << src_end_bitpos;
-              src_mid_bits |= *(u_int16_t *)src_mid << src_mid_bitpos;
+              src_mid_bits |= *(uint16_t *)src_mid << src_mid_bitpos;
             }
           n = lut->bits2len[src_end_bits & 0x7FF];
           *dst++ = lut->bits2sym[src_end_bits & 0x7FF];
@@ -236,15 +236,15 @@ Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
 }
 
 bool
-DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br)
+DecodeGolombRiceLengths (uint8_t *dst, size_t size, BitReader2 *br)
 {
-  const u_int8_t *p = br->p, *p_end = br->p_end;
-  u_int8_t *dst_end = dst + size;
+  const uint8_t *p = br->p, *p_end = br->p_end;
+  uint8_t *dst_end = dst + size;
   if (p >= p_end)
     return false;
 
   int32_t count = -(int32_t)br->bitpos;
-  u_int32_t v = *p++ & (255 >> br->bitpos);
+  uint32_t v = *p++ & (255 >> br->bitpos);
   for (;;)
     {
       if (v == 0)
@@ -253,9 +253,9 @@ DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br)
         }
       else
         {
-          u_int32_t x = kRiceCodeBits2Value[v];
-          *(u_int32_t *)&dst[0] = count + (x & 0x0f0f0f0f);
-          *(u_int32_t *)&dst[4] = (x >> 4) & 0x0f0f0f0f;
+          uint32_t x = kRiceCodeBits2Value[v];
+          *(uint32_t *)&dst[0] = count + (x & 0x0f0f0f0f);
+          *(uint32_t *)&dst[4] = (x >> 4) & 0x0f0f0f0f;
           dst += kRiceCodeBits2Len[v];
           if (dst >= dst_end)
             break;
@@ -273,12 +273,12 @@ DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br)
         v &= (v - 1);
       while (--n);
     }
-  // step back if u_int8_t not finished
+  // step back if uint8_t not finished
   int32_t bitpos = 0;
   if (!(v & 1))
     {
       p--;
-      u_int64_t q;
+      uint64_t q;
       _BitScanForward (&q, v);
       bitpos = 8 - q;
     }
@@ -288,17 +288,17 @@ DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br)
 }
 
 bool
-DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
+DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
                       BitReader2 *br)
 {
   if (bitcount == 0)
     return true;
-  u_int8_t *dst_end = dst + size;
-  const u_int8_t *p = br->p;
+  uint8_t *dst_end = dst + size;
+  const uint8_t *p = br->p;
   int32_t bitpos = br->bitpos;
 
-  u_int32_t bits_required = bitpos + bitcount * size;
-  u_int32_t bytes_required = (bits_required + 7) >> 3;
+  uint32_t bits_required = bitpos + bitcount * size;
+  uint32_t bytes_required = (bits_required + 7) >> 3;
   if (bytes_required > br->p_end - p)
     return false;
 
@@ -306,7 +306,7 @@ DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
   br->bitpos = bits_required & 7;
 
   // todo. handle r/w outside of range
-  u_int64_t bak = *(u_int64_t *)dst_end;
+  uint64_t bak = *(uint64_t *)dst_end;
 
   if (bitcount < 2)
     {
@@ -314,15 +314,15 @@ DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
       do
         {
           // Read the next byte
-          u_int64_t bits
-              = (u_int8_t)(_byteswap_ulong (*(u_int32_t *)p) >> (24 - bitpos));
+          uint64_t bits
+              = (uint8_t)(_byteswap_ulong (*(uint32_t *)p) >> (24 - bitpos));
           p += 1;
-          // Expand each bit into each u_int8_t of the u_int64_t.
+          // Expand each bit into each uint8_t of the uint64_t.
           bits = (bits | (bits << 28)) & 0xF0000000Full;
           bits = (bits | (bits << 14)) & 0x3000300030003ull;
           bits = (bits | (bits << 7)) & 0x0101010101010101ull;
-          *(u_int64_t *)dst
-              = *(u_int64_t *)dst * 2 + _byteswap_u_int64_t (bits);
+          *(uint64_t *)dst
+              = *(uint64_t *)dst * 2 + _byteswap_uint64_t (bits);
           dst += 8;
         }
       while (dst < dst_end);
@@ -332,15 +332,15 @@ DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
       do
         {
           // Read the next 2 bytes
-          u_int64_t bits = (u_int16_t)(_byteswap_ulong (*(u_int32_t *)p)
+          uint64_t bits = (uint16_t)(_byteswap_ulong (*(uint32_t *)p)
                                        >> (16 - bitpos));
           p += 2;
-          // Expand each bit into each u_int8_t of the u_int64_t.
+          // Expand each bit into each uint8_t of the uint64_t.
           bits = (bits | (bits << 24)) & 0xFF000000FFull;
           bits = (bits | (bits << 12)) & 0xF000F000F000Full;
           bits = (bits | (bits << 6)) & 0x0303030303030303ull;
-          *(u_int64_t *)dst
-              = *(u_int64_t *)dst * 4 + _byteswap_u_int64_t (bits);
+          *(uint64_t *)dst
+              = *(uint64_t *)dst * 4 + _byteswap_uint64_t (bits);
           dst += 8;
         }
       while (dst < dst_end);
@@ -351,42 +351,42 @@ DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
       do
         {
           // Read the next 3 bytes
-          u_int64_t bits
-              = (_byteswap_ulong (*(u_int32_t *)p) >> (8 - bitpos)) & 0xffffff;
+          uint64_t bits
+              = (_byteswap_ulong (*(uint32_t *)p) >> (8 - bitpos)) & 0xffffff;
           p += 3;
-          // Expand each bit into each u_int8_t of the u_int64_t.
+          // Expand each bit into each uint8_t of the uint64_t.
           bits = (bits | (bits << 20)) & 0xFFF00000FFFull;
           bits = (bits | (bits << 10)) & 0x3F003F003F003Full;
           bits = (bits | (bits << 5)) & 0x0707070707070707ull;
-          *(u_int64_t *)dst
-              = *(u_int64_t *)dst * 8 + _byteswap_u_int64_t (bits);
+          *(uint64_t *)dst
+              = *(uint64_t *)dst * 8 + _byteswap_uint64_t (bits);
           dst += 8;
         }
       while (dst < dst_end);
     }
-  *(u_int64_t *)dst_end = bak;
+  *(uint64_t *)dst_end = bak;
   return true;
 }
 
 // May overflow 16 bytes past the end
 void
-FillByteOverflow16 (u_int8_t *dst, u_int8_t v, size_t n)
+FillByteOverflow16 (uint8_t *dst, uint8_t v, size_t n)
 {
   memset (dst, v, n);
 }
 
 int32_t
-Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
-                          u_int8_t *output, int32_t output_size, int32_t type)
+Oozle_DecodeBytes_Type12 (const uint8_t *src, size_t src_size,
+                          uint8_t *output, int32_t output_size, int32_t type)
 {
   BitReader bits;
   int32_t half_output_size;
-  u_int32_t split_left, split_mid, split_right;
-  const u_int8_t *src_mid;
+  uint32_t split_left, split_mid, split_right;
+  const uint8_t *src_mid;
   NewHuffLut huff_lut;
   HuffReader hr;
   HuffRevLut rev_lut;
-  const u_int8_t *src_end = src + src_size;
+  const uint8_t *src_end = src + src_size;
 
   bits.bitpos = 24;
   bits.bits = 0;
@@ -394,12 +394,12 @@ Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
   bits.p_end = src_end;
   BitReader_Refill (&bits);
 
-  static const u_int32_t code_prefix_org[12] = { 0x0,  0x0,   0x2,   0x6,
+  static const uint32_t code_prefix_org[12] = { 0x0,  0x0,   0x2,   0x6,
                                                  0xE,  0x1E,  0x3E,  0x7E,
                                                  0xFE, 0x1FE, 0x2FE, 0x3FE };
-  u_int32_t code_prefix[12] = { 0x0,  0x0,  0x2,  0x6,   0xE,   0x1E,
+  uint32_t code_prefix[12] = { 0x0,  0x0,  0x2,  0x6,   0xE,   0x1E,
                                 0x3E, 0x7E, 0xFE, 0x1FE, 0x2FE, 0x3FE };
-  u_int8_t syms[1280];
+  uint8_t syms[1280];
   int32_t num_syms;
   if (!BitReader_ReadBitNoRefill (&bits))
     {
@@ -434,7 +434,7 @@ Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
     {
       if (src + 3 > src_end)
         return -1;
-      split_mid = *(u_int16_t *)src;
+      split_mid = *(uint16_t *)src;
       src += 2;
       hr.output = output;
       hr.output_end = output + output_size;
@@ -456,16 +456,16 @@ Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
         return -1;
 
       half_output_size = (output_size + 1) >> 1;
-      split_mid = *(u_int32_t *)src & 0xFFFFFF;
+      split_mid = *(uint32_t *)src & 0xFFFFFF;
       src += 3;
       if (split_mid > (src_end - src))
         return -1;
       src_mid = src + split_mid;
-      split_left = *(u_int16_t *)src;
+      split_left = *(uint16_t *)src;
       src += 2;
       if (src_mid - src < split_left + 2 || src_end - src_mid < 3)
         return -1;
-      split_right = *(u_int16_t *)src_mid;
+      split_right = *(uint16_t *)src_mid;
       if (src_end - (src_mid + 2) < split_right + 2)
         return -1;
 
@@ -501,14 +501,14 @@ Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
 }
 
 int32_t
-Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
-                        u_int8_t *dst, u_int8_t *dst_end,
-                        u_int8_t **array_data, int32_t *array_lens,
+Oozle_DecodeMultiArray (const uint8_t *src, const uint8_t *src_end,
+                        uint8_t *dst, uint8_t *dst_end,
+                        uint8_t **array_data, int32_t *array_lens,
                         int32_t array_count, int32_t *total_size_out,
-                        bool force_memmove, u_int8_t *scratch,
-                        u_int8_t *scratch_end)
+                        bool force_memmove, uint8_t *scratch,
+                        uint8_t *scratch_end)
 {
-  const u_int8_t *src_org = src;
+  const uint8_t *src_org = src;
 
   if (src_end - src < 4)
     return -1;
@@ -532,7 +532,7 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
     {
       for (int32_t i = 0; i < array_count; i++)
         {
-          u_int8_t *chunk_dst = dst;
+          uint8_t *chunk_dst = dst;
           int32_t dec = Oozle_DecodeBytes (
               &chunk_dst, src, src_end, &decoded_size, dst_end - dst,
               force_memmove, scratch, scratch_end);
@@ -548,15 +548,15 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
       return src - src_org; // not supported yet
     }
 
-  u_int8_t *entropy_array_data[32];
-  u_int32_t entropy_array_size[32];
+  uint8_t *entropy_array_data[32];
+  uint32_t entropy_array_size[32];
 
   // First loop just decodes everything to scratch
-  u_int8_t *scratch_cur = scratch;
+  uint8_t *scratch_cur = scratch;
 
   for (int32_t i = 0; i < num_arrays_in_file; i++)
     {
-      u_int8_t *chunk_dst = scratch_cur;
+      uint8_t *chunk_dst = scratch_cur;
       int32_t dec = Oozle_DecodeBytes (
           &chunk_dst, src, src_end, &decoded_size, scratch_end - scratch_cur,
           force_memmove, scratch_cur, scratch_end);
@@ -573,7 +573,7 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
   if (src_end - src < 3)
     return -1;
 
-  int32_t Q = *(u_int16_t *)src;
+  int32_t Q = *(uint16_t *)src;
   src += 2;
 
   int32_t out_size;
@@ -587,12 +587,12 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
 
   if (scratch_end - scratch_cur < num_indexes)
     return -1;
-  u_int8_t *interval_lenlog2 = scratch_cur;
+  uint8_t *interval_lenlog2 = scratch_cur;
   scratch_cur += num_indexes;
 
   if (scratch_end - scratch_cur < num_indexes)
     return -1;
-  u_int8_t *interval_indexes = scratch_cur;
+  uint8_t *interval_indexes = scratch_cur;
   scratch_cur += num_indexes;
 
   if (Q & 0x8000)
@@ -644,29 +644,29 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
   scratch_cur = ALIGN_POINTER (scratch_cur, 4);
   if (scratch_end - scratch_cur < num_lens * 4)
     return -1;
-  u_int32_t *decoded_intervals = (u_int32_t *)scratch_cur;
+  uint32_t *decoded_intervals = (uint32_t *)scratch_cur;
 
   int32_t varbits_complen = Q & 0x3FFF;
   if (src_end - src < varbits_complen)
     return -1;
 
-  const u_int8_t *f = src;
-  u_int32_t bits_f = 0;
+  const uint8_t *f = src;
+  uint32_t bits_f = 0;
   int32_t bitpos_f = 24;
 
-  const u_int8_t *src_end_actual = src + varbits_complen;
+  const uint8_t *src_end_actual = src + varbits_complen;
 
-  const u_int8_t *b = src_end_actual;
-  u_int32_t bits_b = 0;
+  const uint8_t *b = src_end_actual;
+  uint32_t bits_b = 0;
   int32_t bitpos_b = 24;
 
   int32_t i;
   for (i = 0; i + 2 <= num_lens; i += 2)
     {
-      bits_f |= _byteswap_ulong (*(u_int32_t *)f) >> (24 - bitpos_f);
+      bits_f |= _byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
       f += (bitpos_f + 7) >> 3;
 
-      bits_b |= ((u_int32_t *)b)[-1] >> (24 - bitpos_b);
+      bits_b |= ((uint32_t *)b)[-1] >> (24 - bitpos_b);
       b -= (bitpos_b + 7) >> 3;
 
       int32_t numbits_f = interval_lenlog2[i + 0];
@@ -691,7 +691,7 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
   // read final one since above loop reads 2
   if (i < num_lens)
     {
-      bits_f |= _byteswap_ulong (*(u_int32_t *)f) >> (24 - bitpos_f);
+      bits_f |= _byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
       int32_t numbits_f = interval_lenlog2[i];
       bits_f = _rotl (bits_f | 1, numbits_f);
       int32_t value_f = bits_f & bitmasks[numbits_f];
@@ -720,10 +720,10 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
           int32_t bytes_left = entropy_array_size[source - 1];
           if (cur_len > bytes_left || cur_len > dst_end - dst)
             return -1;
-          u_int8_t *blksrc = entropy_array_data[source - 1];
+          uint8_t *blksrc = entropy_array_data[source - 1];
           entropy_array_size[source - 1] -= cur_len;
           entropy_array_data[source - 1] += cur_len;
-          u_int8_t *dstx = dst;
+          uint8_t *dstx = dst;
           dst += cur_len;
           memcpy (dstx, blksrc, cur_len);
         }
@@ -743,13 +743,13 @@ Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
 }
 
 int32_t
-Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size, u_int8_t *output,
-                       int32_t output_size, u_int8_t *scratch,
-                       u_int8_t *scratch_end)
+Oozle_DecodeRecursive (const uint8_t *src, size_t src_size, uint8_t *output,
+                       int32_t output_size, uint8_t *scratch,
+                       uint8_t *scratch_end)
 {
-  const u_int8_t *src_org = src;
-  u_int8_t *output_end = output + output_size;
-  const u_int8_t *src_end = src + src_size;
+  const uint8_t *src_org = src;
+  uint8_t *output_end = output + output_size;
+  const uint8_t *src_end = src + src_size;
 
   if (src_size < 6)
     return -1;
@@ -779,7 +779,7 @@ Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size, u_int8_t *output,
     }
   else
     {
-      u_int8_t *array_data;
+      uint8_t *array_data;
       int32_t array_len, decoded_size;
       int32_t dec = Oozle_DecodeMultiArray (
           src, src_end, output, output_end, &array_data, &array_len, 1,
@@ -794,8 +794,8 @@ Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size, u_int8_t *output,
 }
 
 int32_t
-Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
-                 int32_t dst_size, u_int8_t *scratch, u_int8_t *scratch_end)
+Oozle_DecodeRLE (const uint8_t *src, size_t src_size, uint8_t *dst,
+                 int32_t dst_size, uint8_t *scratch, uint8_t *scratch_end)
 {
   if (src_size <= 1)
     {
@@ -804,12 +804,12 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
       memset (dst, src[0], dst_size);
       return 1;
     }
-  u_int8_t *dst_end = dst + dst_size;
-  const u_int8_t *cmd_ptr = src + 1, *cmd_ptr_end = src + src_size;
+  uint8_t *dst_end = dst + dst_size;
+  const uint8_t *cmd_ptr = src + 1, *cmd_ptr_end = src + src_size;
   // Unpack the first X bytes of the command buffer?
   if (src[0])
     {
-      u_int8_t *dst_ptr = scratch;
+      uint8_t *dst_ptr = scratch;
       int32_t dec_size;
       int32_t n = Oozle_DecodeBytes (&dst_ptr, src, src + src_size, &dec_size,
                                      scratch_end - scratch, true, scratch,
@@ -828,12 +828,12 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
 
   while (cmd_ptr < cmd_ptr_end)
     {
-      u_int32_t cmd = cmd_ptr_end[-1];
+      uint32_t cmd = cmd_ptr_end[-1];
       if (cmd - 1 >= 0x2f)
         {
           cmd_ptr_end--;
-          u_int32_t bytes_to_copy = (-1 - cmd) & 0xF;
-          u_int32_t bytes_to_rle = cmd >> 4;
+          uint32_t bytes_to_copy = (-1 - cmd) & 0xF;
+          uint32_t bytes_to_rle = cmd >> 4;
           if (dst_end - dst < bytes_to_copy + bytes_to_rle
               || cmd_ptr_end - cmd_ptr < bytes_to_copy)
             return -1;
@@ -845,10 +845,10 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
         }
       else if (cmd >= 0x10)
         {
-          u_int32_t data = *(u_int16_t *)(cmd_ptr_end - 2) - 4096;
+          uint32_t data = *(uint16_t *)(cmd_ptr_end - 2) - 4096;
           cmd_ptr_end -= 2;
-          u_int32_t bytes_to_copy = data & 0x3F;
-          u_int32_t bytes_to_rle = data >> 6;
+          uint32_t bytes_to_copy = data & 0x3F;
+          uint32_t bytes_to_rle = data >> 6;
           if (dst_end - dst < bytes_to_copy + bytes_to_rle
               || cmd_ptr_end - cmd_ptr < bytes_to_copy)
             return -1;
@@ -865,8 +865,8 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
         }
       else if (cmd >= 9)
         {
-          u_int32_t bytes_to_rle
-              = (*(u_int16_t *)(cmd_ptr_end - 2) - 0x8ff) * 128;
+          uint32_t bytes_to_rle
+              = (*(uint16_t *)(cmd_ptr_end - 2) - 0x8ff) * 128;
           cmd_ptr_end -= 2;
           if (dst_end - dst < bytes_to_rle)
             return -1;
@@ -875,8 +875,8 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
         }
       else
         {
-          u_int32_t bytes_to_copy
-              = (*(u_int16_t *)(cmd_ptr_end - 2) - 511) * 64;
+          uint32_t bytes_to_copy
+              = (*(uint16_t *)(cmd_ptr_end - 2) - 511) * 64;
           cmd_ptr_end -= 2;
           if (cmd_ptr_end - cmd_ptr < bytes_to_copy
               || dst_end - dst < bytes_to_copy)
@@ -896,13 +896,13 @@ Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
 }
 
 int32_t
-Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
-                  int32_t dst_size, u_int8_t *scratch, u_int8_t *scratch_end)
+Oozle_DecodeTans (const uint8_t *src, size_t src_size, uint8_t *dst,
+                  int32_t dst_size, uint8_t *scratch, uint8_t *scratch_end)
 {
   if (src_size < 8 || dst_size < 5)
     return -1;
 
-  const u_int8_t *src_end = src + src_size;
+  const uint8_t *src_end = src + src_size;
 
   BitReader br;
   TansData tans_data;
@@ -927,7 +927,7 @@ Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
   if (src >= src_end)
     return -1;
 
-  u_int32_t lut_space_required = ((sizeof (TansLutEnt) << L_bits) + 15) & ~15;
+  uint32_t lut_space_required = ((sizeof (TansLutEnt) << L_bits) + 15) & ~15;
   if (lut_space_required > (scratch_end - scratch))
     return -1;
 
@@ -939,12 +939,12 @@ Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
   Tans_InitLut (&tans_data, L_bits, params.lut);
 
   // Read out the initial state
-  u_int32_t L_mask = (1 << L_bits) - 1;
-  u_int32_t bits_f = *(u_int32_t *)src;
+  uint32_t L_mask = (1 << L_bits) - 1;
+  uint32_t bits_f = *(uint32_t *)src;
   src += 4;
-  u_int32_t bits_b = _byteswap_ulong (*(u_int32_t *)(src_end - 4));
+  uint32_t bits_b = _byteswap_ulong (*(uint32_t *)(src_end - 4));
   src_end -= 4;
-  u_int32_t bitpos_f = 32, bitpos_b = 32;
+  uint32_t bitpos_f = 32, bitpos_b = 32;
 
   // Read first two.
   params.state_0 = bits_f & L_mask;
@@ -959,7 +959,7 @@ Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
   bits_b >>= L_bits, bitpos_b -= L_bits;
 
   // Refill more bits
-  bits_f |= *(u_int32_t *)src << bitpos_f;
+  bits_f |= *(uint32_t *)src << bitpos_f;
   src += (31 - bitpos_f) >> 3;
   bitpos_f |= 24;
 
@@ -982,10 +982,10 @@ Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
 }
 
 int32_t
-Oozle_GetBlockSize (const u_int8_t *src, const u_int8_t *src_end,
+Oozle_GetBlockSize (const uint8_t *src, const uint8_t *src_end,
                     int32_t *dest_size, int32_t dest_capacity)
 {
-  const u_int8_t *src_org = src;
+  const uint8_t *src_org = src;
   int32_t src_size, dst_size;
 
   if (src_end - src < 2)
@@ -1026,7 +1026,7 @@ Oozle_GetBlockSize (const u_int8_t *src, const u_int8_t *src_end,
         return -1; // too few bytes
 
       // short mode, 10 bit sizes
-      u_int32_t bits = ((src[0] << 16) | (src[1] << 8) | src[2]);
+      uint32_t bits = ((src[0] << 16) | (src[1] << 8) | src[2]);
       src_size = bits & 0x3ff;
       dst_size = src_size + ((bits >> 10) & 0x3ff) + 1;
       src += 3;
@@ -1036,7 +1036,7 @@ Oozle_GetBlockSize (const u_int8_t *src, const u_int8_t *src_end,
       // long mode, 18 bit sizes
       if (src_end - src < 5)
         return -1; // too few bytes
-      u_int32_t bits
+      uint32_t bits
           = ((src[1] << 24) | (src[2] << 16) | (src[3] << 8) | src[4]);
       src_size = bits & 0x3ffff;
       dst_size = (((bits >> 18) | (src[0] << 14)) & 0x3FFFF) + 1;
@@ -1051,12 +1051,12 @@ Oozle_GetBlockSize (const u_int8_t *src, const u_int8_t *src_end,
 }
 
 int32_t
-Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
-                   const u_int8_t *src_end, int32_t *decoded_size,
-                   size_t output_size, bool force_memmove, u_int8_t *scratch,
-                   u_int8_t *scratch_end)
+Oozle_DecodeBytes (uint8_t **output, const uint8_t *src,
+                   const uint8_t *src_end, int32_t *decoded_size,
+                   size_t output_size, bool force_memmove, uint8_t *scratch,
+                   uint8_t *scratch_end)
 {
-  const u_int8_t *src_org = src;
+  const uint8_t *src_org = src;
   int32_t src_size, dst_size;
 
   if (src_end - src < 2)
@@ -1086,7 +1086,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
       if (force_memmove)
         memmove (*output, src, src_size);
       else
-        *output = (u_int8_t *)src;
+        *output = (uint8_t *)src;
       return src + src_size - src_org;
     }
 
@@ -1098,7 +1098,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
         return -1; // too few bytes
 
       // short mode, 10 bit sizes
-      u_int32_t bits = ((src[0] << 16) | (src[1] << 8) | src[2]);
+      uint32_t bits = ((src[0] << 16) | (src[1] << 8) | src[2]);
       src_size = bits & 0x3ff;
       dst_size = src_size + ((bits >> 10) & 0x3ff) + 1;
       src += 3;
@@ -1108,7 +1108,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
       // long mode, 18 bit sizes
       if (src_end - src < 5)
         return -1; // too few bytes
-      u_int32_t bits
+      uint32_t bits
           = ((src[1] << 24) | (src[2] << 16) | (src[3] << 8) | src[4]);
       src_size = bits & 0x3ffff;
       dst_size = (((bits >> 18) | (src[0] << 14)) & 0x3FFFF) + 1;
@@ -1119,7 +1119,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
   if (src_end - src < src_size || dst_size > output_size)
     return -1;
 
-  u_int8_t *dst = *output;
+  uint8_t *dst = *output;
   if (dst == scratch)
     {
       if (scratch_end - scratch < dst_size)
@@ -1158,7 +1158,7 @@ Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
 
 void
 CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
-                           int32_t scale, const u_int8_t *low_bits)
+                           int32_t scale, const uint8_t *low_bits)
 {
   for (size_t i = 0; i != offs_stream_size; i++)
     offs_stream[i] = scale * offs_stream[i] - low_bits[i];

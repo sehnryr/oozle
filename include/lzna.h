@@ -2,18 +2,18 @@
 
 #include "stdafx.h"
 
-typedef u_int16_t LznaBitModel;
+typedef uint16_t LznaBitModel;
 
 // State for a 4-bit value RANS model
 struct LznaNibbleModel
 {
-  u_int16_t prob[17];
+  uint16_t prob[17];
 };
 
 // State for a 3-bit value RANS model
 struct Lzna3bitModel
 {
-  u_int16_t prob[9];
+  uint16_t prob[9];
 };
 
 // State for the literal model
@@ -65,7 +65,7 @@ struct LznaLongLengthModel
 // Complete LZNA state
 struct LznaState
 {
-  u_int32_t match_history[8];
+  uint32_t match_history[8];
   LznaLiteralModel literal[4];
   LznaBitModel is_literal[12 * 8];
   LznaNibbleModel type[12 * 8];
@@ -81,8 +81,8 @@ struct LznaState
 
 struct LznaBitReader
 {
-  u_int64_t bits_a, bits_b;
-  const u_int32_t *src, *src_start;
+  uint64_t bits_a, bits_b;
+  const uint32_t *src, *src_start;
 };
 
 static LznaNibbleModel lzna_initializer_4bit = {
@@ -93,11 +93,11 @@ static LznaNibbleModel lzna_initializer_4bit = {
 static Lzna3bitModel lzna_initializer_3bit
     = { 0x0, 0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000, 0x7000, 0x8000 };
 
-static const u_int8_t next_state_lit[12]
+static const uint8_t next_state_lit[12]
     = { 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 4, 5 };
 
 void LZNA_InitLookup (LznaState *lut);
 
-int LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
-                        const u_int8_t *src_in, const u_int8_t *src_end,
+int LZNA_DecodeQuantum (uint8_t *dst, uint8_t *dst_end, uint8_t *dst_start,
+                        const uint8_t *src_in, const uint8_t *src_end,
                         LznaState *lut);

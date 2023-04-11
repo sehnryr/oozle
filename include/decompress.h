@@ -15,11 +15,11 @@
 #include <memory>
 
 #define ALIGN_POINTER(p, align)                                               \
-  ((u_int8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
+  ((uint8_t *)(((uintptr_t)(p) + (align - 1)) & ~(align - 1)))
 #define ALIGN_16(x) (((x) + 15) & ~15)
 #define COPY_64(d, s)                                                         \
   {                                                                           \
-    *(u_int64_t *)(d) = *(u_int64_t *)(s);                                    \
+    *(uint64_t *)(d) = *(uint64_t *)(s);                                    \
   }
 #define COPY_64_BYTES(d, s)                                                   \
   {                                                                           \
@@ -33,7 +33,7 @@
                     _mm_add_epi8 (_mm_loadl_epi64 ((__m128i *)(s)),           \
                                   _mm_loadl_epi64 ((__m128i *)(t))))
 
-static const u_int32_t kRiceCodeBits2Value[256] = {
+static const uint32_t kRiceCodeBits2Value[256] = {
   0x80000000, 0x00000007, 0x10000006, 0x00000006, 0x20000005, 0x00000105,
   0x10000005, 0x00000005, 0x30000004, 0x00000204, 0x10000104, 0x00000104,
   0x20000004, 0x00010004, 0x10000004, 0x00000004, 0x40000003, 0x00000303,
@@ -79,7 +79,7 @@ static const u_int32_t kRiceCodeBits2Value[256] = {
   0x20000000, 0x00100000, 0x10000000, 0x00000000,
 };
 
-static const u_int8_t kRiceCodeBits2Len[256] = {
+static const uint8_t kRiceCodeBits2Len[256] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3,
   3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4,
   3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4,
@@ -92,7 +92,7 @@ static const u_int8_t kRiceCodeBits2Len[256] = {
   5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
 };
 
-static u_int32_t bitmasks[32]
+static uint32_t bitmasks[32]
     = { 0x1,        0x3,       0x7,       0xf,       0x1f,       0x3f,
         0x7f,       0xff,      0x1ff,     0x3ff,     0x7ff,      0xfff,
         0x1fff,     0x3fff,    0x7fff,    0xffff,    0x1ffff,    0x3ffff,
@@ -100,46 +100,46 @@ static u_int32_t bitmasks[32]
         0x1ffffff,  0x3ffffff, 0x7ffffff, 0xfffffff, 0x1fffffff, 0x3fffffff,
         0x7fffffff, 0xffffffff };
 
-u_int32_t BSR (u_int32_t x); // Bit scan reverse
-u_int32_t BSF (u_int32_t x); // Bit scan forward
+uint32_t BSR (uint32_t x); // Bit scan reverse
+uint32_t BSF (uint32_t x); // Bit scan forward
 
-int32_t CountLeadingZeros (u_int32_t bits);
-int32_t Log2RoundUp (u_int32_t v);
+int32_t CountLeadingZeros (uint32_t bits);
+int32_t Log2RoundUp (uint32_t v);
 
 bool Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut);
 
-bool DecodeGolombRiceLengths (u_int8_t *dst, size_t size, BitReader2 *br);
-bool DecodeGolombRiceBits (u_int8_t *dst, u_int32_t size, u_int32_t bitcount,
+bool DecodeGolombRiceLengths (uint8_t *dst, size_t size, BitReader2 *br);
+bool DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
                            BitReader2 *br);
 
-void FillByteOverflow16 (u_int8_t *dst, u_int8_t v, size_t n);
+void FillByteOverflow16 (uint8_t *dst, uint8_t v, size_t n);
 
-int32_t Oozle_DecodeBytes_Type12 (const u_int8_t *src, size_t src_size,
-                                  u_int8_t *output, int32_t output_size,
+int32_t Oozle_DecodeBytes_Type12 (const uint8_t *src, size_t src_size,
+                                  uint8_t *output, int32_t output_size,
                                   int32_t type);
-int32_t Oozle_DecodeMultiArray (const u_int8_t *src, const u_int8_t *src_end,
-                                u_int8_t *dst, u_int8_t *dst_end,
-                                u_int8_t **array_data, int32_t *array_lens,
+int32_t Oozle_DecodeMultiArray (const uint8_t *src, const uint8_t *src_end,
+                                uint8_t *dst, uint8_t *dst_end,
+                                uint8_t **array_data, int32_t *array_lens,
                                 int32_t array_count, int32_t *total_size_out,
-                                bool force_memmove, u_int8_t *scratch,
-                                u_int8_t *scratch_end);
-int32_t Oozle_DecodeRecursive (const u_int8_t *src, size_t src_size,
-                               u_int8_t *output, int32_t output_size,
-                               u_int8_t *scratch, u_int8_t *scratch_end);
-int32_t Oozle_DecodeRLE (const u_int8_t *src, size_t src_size, u_int8_t *dst,
-                         int32_t dst_size, u_int8_t *scratch,
-                         u_int8_t *scratch_end);
+                                bool force_memmove, uint8_t *scratch,
+                                uint8_t *scratch_end);
+int32_t Oozle_DecodeRecursive (const uint8_t *src, size_t src_size,
+                               uint8_t *output, int32_t output_size,
+                               uint8_t *scratch, uint8_t *scratch_end);
+int32_t Oozle_DecodeRLE (const uint8_t *src, size_t src_size, uint8_t *dst,
+                         int32_t dst_size, uint8_t *scratch,
+                         uint8_t *scratch_end);
 
-int32_t Oozle_DecodeTans (const u_int8_t *src, size_t src_size, u_int8_t *dst,
-                          int32_t dst_size, u_int8_t *scratch,
-                          u_int8_t *scratch_end);
-int32_t Oozle_GetBlockSize (const u_int8_t *src, const u_int8_t *src_end,
+int32_t Oozle_DecodeTans (const uint8_t *src, size_t src_size, uint8_t *dst,
+                          int32_t dst_size, uint8_t *scratch,
+                          uint8_t *scratch_end);
+int32_t Oozle_GetBlockSize (const uint8_t *src, const uint8_t *src_end,
                             int32_t *dest_size, int32_t dest_capacity);
 
-int32_t Oozle_DecodeBytes (u_int8_t **output, const u_int8_t *src,
-                           const u_int8_t *src_end, int32_t *decoded_size,
+int32_t Oozle_DecodeBytes (uint8_t **output, const uint8_t *src,
+                           const uint8_t *src_end, int32_t *decoded_size,
                            size_t output_size, bool force_memmove,
-                           u_int8_t *scratch, u_int8_t *scratch_end);
+                           uint8_t *scratch, uint8_t *scratch_end);
 
 void CombineScaledOffsetArrays (int32_t *offs_stream, size_t offs_stream_size,
-                                int32_t scale, const u_int8_t *low_bits);
+                                int32_t scale, const uint8_t *low_bits);

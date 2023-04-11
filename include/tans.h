@@ -4,28 +4,28 @@
 
 struct TansData
 {
-  u_int32_t A_used;
-  u_int32_t B_used;
-  u_int8_t A[256];
-  u_int32_t B[256];
+  uint32_t A_used;
+  uint32_t B_used;
+  uint8_t A[256];
+  uint32_t B[256];
 };
 
 struct TansLutEnt
 {
-  u_int32_t x;
-  u_int8_t bits_x;
-  u_int8_t symbol;
-  u_int16_t w;
+  uint32_t x;
+  uint8_t bits_x;
+  uint8_t symbol;
+  uint16_t w;
 };
 
 struct TansDecoderParams
 {
   TansLutEnt *lut;
-  u_int8_t *dst, *dst_end;
-  const u_int8_t *ptr_f, *ptr_b;
-  u_int32_t bits_f, bits_b;
+  uint8_t *dst, *dst_end;
+  const uint8_t *ptr_f, *ptr_b;
+  uint32_t bits_f, bits_b;
   int32_t bitpos_f, bitpos_b;
-  u_int32_t state_0, state_1, state_2, state_3, state_4;
+  uint32_t state_0, state_1, state_2, state_3, state_4;
 };
 
 template <typename T> void SimpleSort (T *p, T *pend);

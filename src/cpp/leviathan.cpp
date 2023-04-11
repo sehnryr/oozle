@@ -1,12 +1,12 @@
 #include "oozle/include/leviathan.h"
 
 bool
-Leviathan_ReadLzTable (int32_t chunk_type, const u_int8_t *src,
-                       const u_int8_t *src_end, u_int8_t *dst,
-                       int32_t dst_size, int32_t offset, u_int8_t *scratch,
-                       u_int8_t *scratch_end, LeviathanLzTable *lztable)
+Leviathan_ReadLzTable (int32_t chunk_type, const uint8_t *src,
+                       const uint8_t *src_end, uint8_t *dst,
+                       int32_t dst_size, int32_t offset, uint8_t *scratch,
+                       uint8_t *scratch_end, LeviathanLzTable *lztable)
 {
-  u_int8_t *packed_offs_stream, *packed_len_stream, *out;
+  uint8_t *packed_offs_stream, *packed_len_stream, *out;
   int32_t decode_count, n;
 
   if (chunk_type > 5)
@@ -23,7 +23,7 @@ Leviathan_ReadLzTable (int32_t chunk_type, const u_int8_t *src,
     }
 
   int32_t offs_scaling = 0;
-  u_int8_t *packed_offs_stream_extra = NULL;
+  uint8_t *packed_offs_stream_extra = NULL;
 
   int32_t offs_stream_limit = dst_size / 3;
 
@@ -171,20 +171,20 @@ Leviathan_ReadLzTable (int32_t chunk_type, const u_int8_t *src,
 
 struct LeviathanModeRaw
 {
-  const u_int8_t *lit_stream;
+  const uint8_t *lit_stream;
 
-  __forceinline LeviathanModeRaw (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeRaw (LeviathanLzTable *lzt, uint8_t *dst_start)
       : lit_stream (lzt->lit_stream[0])
   {
   }
 
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t litlen = (cmd >> 3) & 3;
+    uint32_t litlen = (cmd >> 3) & 3;
     // use cmov
-    u_int32_t len_stream_value = *len_stream & 0xffffff;
+    uint32_t len_stream_value = *len_stream & 0xffffff;
     const int32_t *next_len_stream = len_stream + 1;
     len_stream = (litlen == 3) ? next_len_stream : len_stream;
     litlen = (litlen == 3) ? len_stream_value : litlen;
@@ -214,7 +214,7 @@ struct LeviathanModeRaw
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
     if (final_len >= 64)
       {
@@ -247,20 +247,20 @@ struct LeviathanModeRaw
 
 struct LeviathanModeSub
 {
-  const u_int8_t *lit_stream;
+  const uint8_t *lit_stream;
 
-  __forceinline LeviathanModeSub (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeSub (LeviathanLzTable *lzt, uint8_t *dst_start)
       : lit_stream (lzt->lit_stream[0])
   {
   }
 
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t litlen = (cmd >> 3) & 3;
+    uint32_t litlen = (cmd >> 3) & 3;
     // use cmov
-    u_int32_t len_stream_value = *len_stream & 0xffffff;
+    uint32_t len_stream_value = *len_stream & 0xffffff;
     const int32_t *next_len_stream = len_stream + 1;
     len_stream = (litlen == 3) ? next_len_stream : len_stream;
     litlen = (litlen == 3) ? len_stream_value : litlen;
@@ -291,7 +291,7 @@ struct LeviathanModeSub
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
     if (final_len >= 8)
       {
@@ -315,25 +315,25 @@ struct LeviathanModeSub
 
 struct LeviathanModeLamSub
 {
-  const u_int8_t *lit_stream, *lam_lit_stream;
+  const uint8_t *lit_stream, *lam_lit_stream;
 
   __forceinline LeviathanModeLamSub (LeviathanLzTable *lzt,
-                                     u_int8_t *dst_start)
+                                     uint8_t *dst_start)
       : lit_stream (lzt->lit_stream[0]), lam_lit_stream (lzt->lit_stream[1])
   {
   }
 
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t lit_cmd = cmd & 0x18;
+    uint32_t lit_cmd = cmd & 0x18;
     if (!lit_cmd)
       return true;
 
-    u_int32_t litlen = lit_cmd >> 3;
+    uint32_t litlen = lit_cmd >> 3;
     // use cmov
-    u_int32_t len_stream_value = *len_stream & 0xffffff;
+    uint32_t len_stream_value = *len_stream & 0xffffff;
     const int32_t *next_len_stream = len_stream + 1;
     len_stream = (litlen == 3) ? next_len_stream : len_stream;
     litlen = (litlen == 3) ? len_stream_value : litlen;
@@ -370,7 +370,7 @@ struct LeviathanModeLamSub
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
     dst[0] = *lam_lit_stream++ + dst[last_offset], dst++;
     final_len -= 1;
@@ -402,23 +402,23 @@ struct LeviathanModeSubAnd3
     NUM = 4,
     MASK = NUM - 1
   };
-  const u_int8_t *lit_stream[NUM];
+  const uint8_t *lit_stream[NUM];
 
   __forceinline LeviathanModeSubAnd3 (LeviathanLzTable *lzt,
-                                      u_int8_t *dst_start)
+                                      uint8_t *dst_start)
   {
     for (size_t i = 0; i != NUM; i++)
       lit_stream[i] = lzt->lit_stream[(-(intptr_t)dst_start + i) & MASK];
   }
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t lit_cmd = cmd & 0x18;
+    uint32_t lit_cmd = cmd & 0x18;
 
     if (lit_cmd == 0x18)
       {
-        u_int32_t litlen = *len_stream++ & 0xffffff;
+        uint32_t litlen = *len_stream++ & 0xffffff;
         if (litlen > match_zone_end - dst)
           return false;
         while (litlen)
@@ -441,7 +441,7 @@ struct LeviathanModeSubAnd3
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
     if (final_len > 0)
       {
@@ -461,23 +461,23 @@ struct LeviathanModeSubAndF
     NUM = 16,
     MASK = NUM - 1
   };
-  const u_int8_t *lit_stream[NUM];
+  const uint8_t *lit_stream[NUM];
 
   __forceinline LeviathanModeSubAndF (LeviathanLzTable *lzt,
-                                      u_int8_t *dst_start)
+                                      uint8_t *dst_start)
   {
     for (size_t i = 0; i != NUM; i++)
       lit_stream[i] = lzt->lit_stream[(-(intptr_t)dst_start + i) & MASK];
   }
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t lit_cmd = cmd & 0x18;
+    uint32_t lit_cmd = cmd & 0x18;
 
     if (lit_cmd == 0x18)
       {
-        u_int32_t litlen = *len_stream++ & 0xffffff;
+        uint32_t litlen = *len_stream++ & 0xffffff;
         if (litlen > match_zone_end - dst)
           return false;
         while (litlen)
@@ -500,7 +500,7 @@ struct LeviathanModeSubAndF
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
     if (final_len > 0)
       {
@@ -515,31 +515,31 @@ struct LeviathanModeSubAndF
 
 struct LeviathanModeO1
 {
-  const u_int8_t *lit_streams[16];
-  u_int8_t next_lit[16];
+  const uint8_t *lit_streams[16];
+  uint8_t next_lit[16];
 
-  __forceinline LeviathanModeO1 (LeviathanLzTable *lzt, u_int8_t *dst_start)
+  __forceinline LeviathanModeO1 (LeviathanLzTable *lzt, uint8_t *dst_start)
   {
     for (size_t i = 0; i != 16; i++)
       {
-        u_int8_t *p = lzt->lit_stream[i];
+        uint8_t *p = lzt->lit_stream[i];
         next_lit[i] = *p;
         lit_streams[i] = p + 1;
       }
   }
 
   __forceinline bool
-  CopyLiterals (u_int32_t cmd, u_int8_t *&dst, const int32_t *&len_stream,
-                u_int8_t *match_zone_end, size_t last_offset)
+  CopyLiterals (uint32_t cmd, uint8_t *&dst, const int32_t *&len_stream,
+                uint8_t *match_zone_end, size_t last_offset)
   {
-    u_int32_t lit_cmd = cmd & 0x18;
+    uint32_t lit_cmd = cmd & 0x18;
 
     if (lit_cmd == 0x18)
       {
-        u_int32_t litlen = *len_stream++;
+        uint32_t litlen = *len_stream++;
         if ((int32_t)litlen <= 0)
           return false;
-        u_int32_t context = dst[-1];
+        uint32_t context = dst[-1];
         do
           {
             size_t slot = context >> 4;
@@ -551,7 +551,7 @@ struct LeviathanModeO1
     else if (lit_cmd)
       {
         // either 1 or 2
-        u_int32_t context = dst[-1];
+        uint32_t context = dst[-1];
         size_t slot = context >> 4;
         *dst++ = (context = next_lit[slot]);
         next_lit[slot] = *lit_streams[slot]++;
@@ -566,9 +566,9 @@ struct LeviathanModeO1
   }
 
   __forceinline void
-  CopyFinalLiterals (u_int32_t final_len, u_int8_t *&dst, size_t last_offset)
+  CopyFinalLiterals (uint32_t final_len, uint8_t *&dst, size_t last_offset)
   {
-    u_int32_t context = dst[-1];
+    uint32_t context = dst[-1];
     while (final_len)
       {
         size_t slot = context >> 4;
@@ -581,18 +581,18 @@ struct LeviathanModeO1
 
 template <typename Mode, bool MultiCmd>
 bool
-Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
-                     u_int8_t *dst_end, u_int8_t *window_base)
+Leviathan_ProcessLz (LeviathanLzTable *lzt, uint8_t *dst, uint8_t *dst_start,
+                     uint8_t *dst_end, uint8_t *window_base)
 {
-  const u_int8_t *cmd_stream = lzt->cmd_stream,
+  const uint8_t *cmd_stream = lzt->cmd_stream,
                  *cmd_stream_end = cmd_stream + lzt->cmd_stream_size;
   const int32_t *len_stream = lzt->len_stream;
   const int32_t *len_stream_end = len_stream + lzt->len_stream_size;
 
   const int32_t *offs_stream = lzt->offs_stream;
   const int32_t *offs_stream_end = offs_stream + lzt->offs_stream_size;
-  const u_int8_t *copyfrom;
-  u_int8_t *match_zone_end
+  const uint8_t *copyfrom;
+  uint8_t *match_zone_end
       = (dst_end - dst_start >= 16) ? dst_end - 16 : dst_start;
 
   int32_t recent_offs[16];
@@ -603,8 +603,8 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
 
   Mode mode (lzt, dst_start);
 
-  u_int32_t cmd_stream_left;
-  const u_int8_t *multi_cmd_stream[8], **cmd_stream_ptr;
+  uint32_t cmd_stream_left;
+  const uint8_t *multi_cmd_stream[8], **cmd_stream_ptr;
   if (MultiCmd)
     {
       for (size_t i = 0; i != 8; i++)
@@ -617,7 +617,7 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
 
   for (;;)
     {
-      u_int32_t cmd;
+      uint32_t cmd;
 
       if (!MultiCmd)
         {
@@ -634,8 +634,8 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
           *cmd_stream_ptr = cmd_stream + 1;
         }
 
-      u_int32_t offs_index = cmd >> 5;
-      u_int32_t matchlen = (cmd & 7) + 2;
+      uint32_t offs_index = cmd >> 5;
+      uint32_t matchlen = (cmd & 7) + 2;
 
       recent_offs[15] = *offs_stream;
 
@@ -665,7 +665,7 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
           matchlen = *--len_stream_end + 6;
           COPY_64 (dst, copyfrom);
           COPY_64 (dst + 8, copyfrom + 8);
-          u_int8_t *next_dst = dst + matchlen;
+          uint8_t *next_dst = dst + matchlen;
           if (MultiCmd)
             cmd_stream = *(cmd_stream_ptr
                            = &multi_cmd_stream[(uintptr_t)next_dst & 7]);
@@ -711,12 +711,12 @@ Leviathan_ProcessLz (LeviathanLzTable *lzt, u_int8_t *dst, u_int8_t *dst_start,
 }
 
 bool
-Leviathan_ProcessLzRuns (int32_t chunk_type, u_int8_t *dst, int32_t dst_size,
+Leviathan_ProcessLzRuns (int32_t chunk_type, uint8_t *dst, int32_t dst_size,
                          int32_t offset, LeviathanLzTable *lzt)
 {
-  u_int8_t *dst_cur = dst + (offset == 0 ? 8 : 0);
-  u_int8_t *dst_end = dst + dst_size;
-  u_int8_t *dst_start = dst - offset;
+  uint8_t *dst_cur = dst + (offset == 0 ? 8 : 0);
+  uint8_t *dst_end = dst + dst_size;
+  uint8_t *dst_start = dst - offset;
 
   if (lzt->cmd_stream != NULL)
     {
@@ -774,11 +774,11 @@ Leviathan_ProcessLzRuns (int32_t chunk_type, u_int8_t *dst, int32_t dst_size,
 // Decode one 256kb big quantum block. It's divided into two 128k blocks
 // internally that are compressed separately but with a shared history.
 int32_t
-Leviathan_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
-                         const u_int8_t *src, const u_int8_t *src_end,
-                         u_int8_t *scratch, u_int8_t *scratch_end)
+Leviathan_DecodeQuantum (uint8_t *dst, uint8_t *dst_end, uint8_t *dst_start,
+                         const uint8_t *src, const uint8_t *src_end,
+                         uint8_t *scratch, uint8_t *scratch_end)
 {
-  const u_int8_t *src_in = src;
+  const uint8_t *src_in = src;
   int32_t mode, chunkhdr, dst_count, src_used, written_bytes;
 
   while (dst_end - dst != 0)
@@ -792,7 +792,7 @@ Leviathan_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
       if (!(chunkhdr & 0x800000))
         {
           // Stored as entropy without any match copying.
-          u_int8_t *out = dst;
+          uint8_t *out = dst;
           src_used
               = Oozle_DecodeBytes (&out, src, src_end, &written_bytes,
                                    dst_count, false, scratch, scratch_end);

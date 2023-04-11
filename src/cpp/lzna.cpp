@@ -124,12 +124,12 @@ LZNA_InitLookup (LznaState *lut)
 // Initialize bit reader with 2 parallel streams. Every decode operation
 // swaps the two streams.
 static void
-LznaBitReader_Init (LznaBitReader *tab, const u_int8_t *src)
+LznaBitReader_Init (LznaBitReader *tab, const uint8_t *src)
 {
   int32_t d, n, i;
-  u_int64_t v;
+  uint64_t v;
 
-  tab->src_start = (u_int32_t *)src;
+  tab->src_start = (uint32_t *)src;
 
   d = *src++;
   n = d >> 4;
@@ -144,13 +144,13 @@ LznaBitReader_Init (LznaBitReader *tab, const u_int8_t *src)
   for (i = 0, v = 0; i < n; i++)
     v = (v << 8) | *src++;
   tab->bits_b = (v << 4) | (d & 0xF);
-  tab->src = (u_int32_t *)src;
+  tab->src = (uint32_t *)src;
 }
 
 // Renormalize by filling up the RANS state and swapping the two streams
 static void __forceinline LznaRenormalize (LznaBitReader *tab)
 {
-  u_int64_t x = tab->bits_a;
+  uint64_t x = tab->bits_a;
   if (x < 0x80000000)
     x = (x << 32) | *tab->src++;
   tab->bits_a = tab->bits_b;
@@ -158,7 +158,7 @@ static void __forceinline LznaRenormalize (LznaBitReader *tab)
 }
 
 // Read a single bit with a uniform distribution.
-static u_int32_t __forceinline LznaReadBit (LznaBitReader *tab)
+static uint32_t __forceinline LznaReadBit (LznaBitReader *tab)
 {
   int32_t r = tab->bits_a & 1;
   tab->bits_a >>= 1;
@@ -167,22 +167,22 @@ static u_int32_t __forceinline LznaReadBit (LznaBitReader *tab)
 }
 
 // Read a number of bits with a uniform distribution.
-static u_int32_t __forceinline LznaReadNBits (LznaBitReader *tab, int32_t bits)
+static uint32_t __forceinline LznaReadNBits (LznaBitReader *tab, int32_t bits)
 {
-  u_int32_t rv = tab->bits_a & ((1 << bits) - 1);
+  uint32_t rv = tab->bits_a & ((1 << bits) - 1);
   tab->bits_a >>= bits;
   LznaRenormalize (tab);
   return rv;
 }
 
 // Read a 4-bit value using an adaptive RANS model
-static u_int32_t __forceinline LznaReadNibble (LznaBitReader *tab,
+static uint32_t __forceinline LznaReadNibble (LznaBitReader *tab,
                                                LznaNibbleModel *model)
 {
   __m128i t, t0, t1, c0, c1;
-  u_int64_t bitindex;
-  u_int32_t start, end;
-  u_int64_t x = tab->bits_a;
+  uint64_t bitindex;
+  uint32_t start, end;
+  uint64_t x = tab->bits_a;
 
   t0 = _mm_loadu_si128 ((const __m128i *)&model->prob[0]);
   t1 = _mm_loadu_si128 ((const __m128i *)&model->prob[8]);
@@ -217,13 +217,13 @@ static u_int32_t __forceinline LznaReadNibble (LznaBitReader *tab,
 }
 
 // Read a 3-bit value using an adaptive RANS model
-static u_int32_t __forceinline LznaRead3bit (LznaBitReader *tab,
+static uint32_t __forceinline LznaRead3bit (LznaBitReader *tab,
                                              Lzna3bitModel *model)
 {
   __m128i t, t0, c0;
-  u_int64_t bitindex;
-  u_int32_t start, end;
-  u_int64_t x = tab->bits_a;
+  uint64_t bitindex;
+  uint32_t start, end;
+  uint64_t x = tab->bits_a;
 
   t0 = _mm_loadu_si128 ((const __m128i *)&model->prob[0]);
   t = _mm_cvtsi32_si128 (x & 0x7FFF);
@@ -246,11 +246,11 @@ static u_int32_t __forceinline LznaRead3bit (LznaBitReader *tab,
 }
 
 // Read a 1-bit value using an adaptive RANS model
-static u_int32_t __forceinline LznaRead1Bit (LznaBitReader *tab,
+static uint32_t __forceinline LznaRead1Bit (LznaBitReader *tab,
                                              LznaBitModel *model,
                                              int32_t nbits, int32_t shift)
 {
-  u_int64_t q;
+  uint64_t q;
   int32_t magn = 1 << nbits;
   q = *model * (tab->bits_a >> nbits);
   if ((tab->bits_a & (magn - 1)) >= *model)
@@ -270,11 +270,11 @@ static u_int32_t __forceinline LznaRead1Bit (LznaBitReader *tab,
 }
 
 // Read a far distance using the far distance model
-static u_int32_t __forceinline LznaReadFarDistance (LznaBitReader *tab,
+static uint32_t __forceinline LznaReadFarDistance (LznaBitReader *tab,
                                                     LznaState *lut)
 {
-  u_int32_t n = LznaReadNibble (tab, &lut->far_distance.first_lo);
-  u_int32_t hi;
+  uint32_t n = LznaReadNibble (tab, &lut->far_distance.first_lo);
+  uint32_t hi;
   if (n >= 15)
     n = 15 + LznaReadNibble (tab, &lut->far_distance.first_hi);
   hi = 0;
@@ -292,18 +292,18 @@ static u_int32_t __forceinline LznaReadFarDistance (LznaBitReader *tab,
       hi -= 1;
     }
   LznaLowBitsDistanceModel *lutd = &lut->low_bits_of_distance[hi == 0];
-  u_int32_t low_bit = LznaRead1Bit (tab, &lutd->v, 14, 6);
-  u_int32_t low_nibble = LznaReadNibble (tab, &lutd->d[low_bit]);
+  uint32_t low_bit = LznaRead1Bit (tab, &lutd->v, 14, 6);
+  uint32_t low_nibble = LznaReadNibble (tab, &lutd->d[low_bit]);
   return low_bit + (2 * low_nibble) + (32 * hi) + 1;
 }
 
 // Read a near distance using a near distance model
-static u_int32_t __forceinline LznaReadNearDistance (LznaBitReader *tab,
+static uint32_t __forceinline LznaReadNearDistance (LznaBitReader *tab,
                                                      LznaState *lut,
                                                      LznaNearDistModel *model)
 {
-  u_int32_t nb = LznaReadNibble (tab, &model->first);
-  u_int32_t hi = 0;
+  uint32_t nb = LznaReadNibble (tab, &model->first);
+  uint32_t hi = 0;
   if (nb != 0)
     {
       hi = LznaRead1Bit (tab, &model->second[nb - 1], 14, 6) + 2;
@@ -317,24 +317,24 @@ static u_int32_t __forceinline LznaReadNearDistance (LznaBitReader *tab,
       hi -= 1;
     }
   LznaLowBitsDistanceModel *lutd = &lut->low_bits_of_distance[hi == 0];
-  u_int32_t low_bit = LznaRead1Bit (tab, &lutd->v, 14, 6);
-  u_int32_t low_nibble = LznaReadNibble (tab, &lutd->d[low_bit]);
+  uint32_t low_bit = LznaRead1Bit (tab, &lutd->v, 14, 6);
+  uint32_t low_nibble = LznaReadNibble (tab, &lutd->d[low_bit]);
   return low_bit + (2 * low_nibble) + (32 * hi) + 1;
 }
 
 // Read a length using the length model.
-static u_int32_t __forceinline LznaReadLength (LznaBitReader *tab,
+static uint32_t __forceinline LznaReadLength (LznaBitReader *tab,
                                                LznaLongLengthModel *model,
                                                int64_t dst_offs)
 {
-  u_int32_t length = LznaReadNibble (tab, &model->first[dst_offs & 3]);
+  uint32_t length = LznaReadNibble (tab, &model->first[dst_offs & 3]);
   if (length >= 12)
     {
-      u_int32_t b = LznaReadNibble (tab, &model->second);
+      uint32_t b = LznaReadNibble (tab, &model->second);
       if (b >= 15)
         b = 15 + LznaReadNibble (tab, &model->third);
-      u_int32_t n = 0;
-      u_int32_t base = 0;
+      uint32_t n = 0;
+      uint32_t base = 0;
       if (b)
         {
           n = (b - 1) >> 1;
@@ -346,16 +346,16 @@ static u_int32_t __forceinline LznaReadLength (LznaBitReader *tab,
 }
 
 static void
-LznaCopyLongDist (u_int8_t *dst, size_t dist, size_t length)
+LznaCopyLongDist (uint8_t *dst, size_t dist, size_t length)
 {
-  const u_int8_t *src = dst - dist;
-  ((u_int64_t *)dst)[0] = ((u_int64_t *)src)[0];
-  ((u_int64_t *)dst)[1] = ((u_int64_t *)src)[1];
+  const uint8_t *src = dst - dist;
+  ((uint64_t *)dst)[0] = ((uint64_t *)src)[0];
+  ((uint64_t *)dst)[1] = ((uint64_t *)src)[1];
   if (length > 16)
     {
       do
         {
-          ((u_int64_t *)dst)[2] = ((u_int64_t *)src)[2];
+          ((uint64_t *)dst)[2] = ((uint64_t *)src)[2];
           dst += 8;
           src += 8;
           length -= 8;
@@ -365,22 +365,22 @@ LznaCopyLongDist (u_int8_t *dst, size_t dist, size_t length)
 }
 
 static void
-LznaCopyShortDist (u_int8_t *dst, size_t dist, size_t length)
+LznaCopyShortDist (uint8_t *dst, size_t dist, size_t length)
 {
-  const u_int8_t *src = dst - dist;
+  const uint8_t *src = dst - dist;
   if (dist >= 4)
     {
-      ((u_int32_t *)dst)[0] = ((u_int32_t *)src)[0];
-      ((u_int32_t *)dst)[1] = ((u_int32_t *)src)[1];
-      ((u_int32_t *)dst)[2] = ((u_int32_t *)src)[2];
+      ((uint32_t *)dst)[0] = ((uint32_t *)src)[0];
+      ((uint32_t *)dst)[1] = ((uint32_t *)src)[1];
+      ((uint32_t *)dst)[2] = ((uint32_t *)src)[2];
       if (length > 12)
         {
-          ((u_int32_t *)dst)[3] = ((u_int32_t *)src)[3];
+          ((uint32_t *)dst)[3] = ((uint32_t *)src)[3];
           if (length > 16)
             {
               do
                 {
-                  ((u_int32_t *)dst)[4] = ((u_int32_t *)src)[4];
+                  ((uint32_t *)dst)[4] = ((uint32_t *)src)[4];
                   length -= 4;
                   dst += 4;
                   src += 4;
@@ -395,18 +395,18 @@ LznaCopyShortDist (u_int8_t *dst, size_t dist, size_t length)
     }
   else
     {
-      ((u_int8_t *)dst)[0] = ((u_int8_t *)src)[0];
-      ((u_int8_t *)dst)[1] = ((u_int8_t *)src)[1];
-      ((u_int8_t *)dst)[2] = ((u_int8_t *)src)[2];
-      ((u_int8_t *)dst)[3] = ((u_int8_t *)src)[3];
-      ((u_int8_t *)dst)[4] = ((u_int8_t *)src)[4];
-      ((u_int8_t *)dst)[5] = ((u_int8_t *)src)[5];
-      ((u_int8_t *)dst)[6] = ((u_int8_t *)src)[6];
-      ((u_int8_t *)dst)[7] = ((u_int8_t *)src)[7];
-      ((u_int8_t *)dst)[8] = ((u_int8_t *)src)[8];
+      ((uint8_t *)dst)[0] = ((uint8_t *)src)[0];
+      ((uint8_t *)dst)[1] = ((uint8_t *)src)[1];
+      ((uint8_t *)dst)[2] = ((uint8_t *)src)[2];
+      ((uint8_t *)dst)[3] = ((uint8_t *)src)[3];
+      ((uint8_t *)dst)[4] = ((uint8_t *)src)[4];
+      ((uint8_t *)dst)[5] = ((uint8_t *)src)[5];
+      ((uint8_t *)dst)[6] = ((uint8_t *)src)[6];
+      ((uint8_t *)dst)[7] = ((uint8_t *)src)[7];
+      ((uint8_t *)dst)[8] = ((uint8_t *)src)[8];
       while (length > 9)
         {
-          ((u_int8_t *)dst)[9] = ((u_int8_t *)src)[9];
+          ((uint8_t *)dst)[9] = ((uint8_t *)src)[9];
           dst += 1;
           src += 1;
           length -= 1;
@@ -415,9 +415,9 @@ LznaCopyShortDist (u_int8_t *dst, size_t dist, size_t length)
 }
 
 static void
-LznaCopy4to12 (u_int8_t *dst, size_t dist, size_t length)
+LznaCopy4to12 (uint8_t *dst, size_t dist, size_t length)
 {
-  const u_int8_t *src = dst - dist;
+  const uint8_t *src = dst - dist;
   dst[0] = src[0];
   dst[1] = src[1];
   dst[2] = src[2];
@@ -456,7 +456,7 @@ LznaPreprocessMatchHistory (LznaState *lut)
               return;
             }
         }
-      u_int32_t t = lut->match_history[i + 4];
+      uint32_t t = lut->match_history[i + 4];
       lut->match_history[i + 4] = lut->match_history[i + 3];
       lut->match_history[i + 3] = lut->match_history[i + 2];
       lut->match_history[i + 2] = lut->match_history[i + 1];
@@ -465,17 +465,17 @@ LznaPreprocessMatchHistory (LznaState *lut)
 }
 
 int
-LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
-                    const u_int8_t *src_in, const u_int8_t *src_end,
+LZNA_DecodeQuantum (uint8_t *dst, uint8_t *dst_end, uint8_t *dst_start,
+                    const uint8_t *src_in, const uint8_t *src_end,
                     LznaState *lut)
 {
   LznaBitReader tab;
-  u_int32_t x;
-  u_int32_t dst_offs = dst - dst_start;
-  u_int32_t match_val;
-  u_int32_t state;
-  u_int32_t length;
-  u_int32_t dist;
+  uint32_t x;
+  uint32_t dst_offs = dst - dst_start;
+  uint32_t match_val;
+  uint32_t state;
+  uint32_t length;
+  uint32_t dist;
 
   LznaPreprocessMatchHistory (lut);
   LznaBitReader_Init (&tab, src_in);
@@ -511,7 +511,7 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
           x = LznaReadNibble (&tab, &lut->type[(dst_offs & 7) + 8 * state]);
           if (x == 0)
             {
-              // Copy 1 u_int8_t from most recent distance
+              // Copy 1 uint8_t from most recent distance
               *dst++ = match_val;
               dst_offs += 1;
               state = (state >= 7) ? 11 : 9;
@@ -539,8 +539,8 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
                   dist = LznaReadFarDistance (&tab, lut);
                   if (dist >= 8)
                     {
-                      ((u_int64_t *)dst)[0] = ((u_int64_t *)(dst - dist))[0];
-                      ((u_int64_t *)dst)[1] = ((u_int64_t *)(dst - dist))[1];
+                      ((uint64_t *)dst)[0] = ((uint64_t *)(dst - dist))[0];
+                      ((uint64_t *)dst)[1] = ((uint64_t *)(dst - dist))[1];
                     }
                   else
                     {
@@ -568,7 +568,7 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
             }
           else if (x >= 12)
             {
-              // Copy 2 u_int8_ts from a recent distance
+              // Copy 2 uint8_ts from a recent distance
               size_t idx = x - 12;
               dist = lut->match_history[4 + idx];
               lut->match_history[4 + idx] = lut->match_history[3 + idx];
@@ -591,7 +591,7 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
               lut->match_history[4] = dist;
               if (x & 1)
                 {
-                  // Copy 11- u_int8_ts from recent distance
+                  // Copy 11- uint8_ts from recent distance
                   length = 11
                            + LznaReadLength (&tab, &lut->long_length_recent,
                                              dst_offs);
@@ -606,15 +606,15 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
                 }
               else
                 {
-                  // Copy 3-10 u_int8_ts from recent distance
+                  // Copy 3-10 uint8_ts from recent distance
                   length = 3
                            + LznaRead3bit (
                                &tab,
                                &lut->short_length_recent[idx].a[dst_offs & 3]);
                   if (dist >= 8)
                     {
-                      ((u_int64_t *)dst)[0] = ((u_int64_t *)(dst - dist))[0];
-                      ((u_int64_t *)dst)[1] = ((u_int64_t *)(dst - dist))[1];
+                      ((uint64_t *)dst)[0] = ((uint64_t *)(dst - dist))[0];
+                      ((uint64_t *)dst)[1] = ((uint64_t *)(dst - dist))[1];
                     }
                   else
                     {
@@ -644,7 +644,7 @@ LZNA_DecodeQuantum (u_int8_t *dst, u_int8_t *dst_end, u_int8_t *dst_start,
   if (dst != dst_end)
     return -1;
 
-  *(u_int64_t *)dst = (u_int32_t)tab.bits_a | (tab.bits_b << 32);
+  *(uint64_t *)dst = (uint32_t)tab.bits_a | (tab.bits_b << 32);
 
-  return (u_int8_t *)tab.src - src_in;
+  return (uint8_t *)tab.src - src_in;
 }
