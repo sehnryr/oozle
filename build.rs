@@ -10,6 +10,9 @@ fn main() {
         .file("src/cpp/leviathan.cpp")
         .file("src/cpp/decompress.cpp")
 
+        // MSVC flags
+        .flag_if_supported("/std:c++latest")
+
         // GCC flags to suppress warnings
         .flag_if_supported("-Wno-conversion-null")
         .flag_if_supported("-Wno-sequence-point")
