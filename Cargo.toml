@@ -1,6 +1,6 @@
 [package]
 name = "oozle"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["Youn Mélois <youn@melois.dev>"]
 repository = "https://github.com/sehnryr/oozle"
