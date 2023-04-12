@@ -310,7 +310,7 @@ Tans_Decode (TansDecoderParams *params)
     break;
 
 #define TANS_BACKWARD_BITS()                                                  \
-  bits_b |= _byteswap_ulong (((uint32_t *)ptr_b)[-1]) << bitpos_b;           \
+  bits_b |= byteswap_ulong (((uint32_t *)ptr_b)[-1]) << bitpos_b;           \
   ptr_b -= (31 - bitpos_b) >> 3;                                              \
   bitpos_b |= 24;
 
