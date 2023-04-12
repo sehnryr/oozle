@@ -4,7 +4,7 @@ uint32_t
 BSR (uint32_t x)
 {
   uint64_t index;
-  _BitScanReverse (&index, x);
+  BitScanReverse (&index, x);
   return index;
 }
 
@@ -12,7 +12,7 @@ uint32_t
 BSF (uint32_t x)
 {
   uint64_t index;
-  _BitScanForward (&index, x);
+  BitScanForward (&index, x);
   return index;
 }
 
@@ -22,7 +22,7 @@ Log2RoundUp (uint32_t v)
   if (v > 1)
     {
       uint64_t idx;
-      _BitScanReverse (&idx, v - 1);
+      BitScanReverse (&idx, v - 1);
       return idx + 1;
     }
   else
@@ -113,7 +113,7 @@ Oozle_DecodeBytesCore (HuffReader *hr, HuffRevLut *lut)
           src_bits |= *(uint32_t *)src << src_bitpos;
           src += (31 - src_bitpos) >> 3;
 
-          src_end_bits |= _byteswap_ulong (*(uint32_t *)src_end)
+          src_end_bits |= byteswap_ulong (*(uint32_t *)src_end)
                           << src_end_bitpos;
           src_end -= (31 - src_end_bitpos) >> 3;
 
@@ -279,7 +279,7 @@ DecodeGolombRiceLengths (uint8_t *dst, size_t size, BitReader2 *br)
     {
       p--;
       uint64_t q;
-      _BitScanForward (&q, v);
+      BitScanForward (&q, v);
       bitpos = 8 - q;
     }
   br->p = p;
@@ -315,14 +315,14 @@ DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
         {
           // Read the next byte
           uint64_t bits
-              = (uint8_t)(_byteswap_ulong (*(uint32_t *)p) >> (24 - bitpos));
+              = (uint8_t)(byteswap_ulong (*(uint32_t *)p) >> (24 - bitpos));
           p += 1;
           // Expand each bit into each uint8_t of the uint64_t.
           bits = (bits | (bits << 28)) & 0xF0000000Full;
           bits = (bits | (bits << 14)) & 0x3000300030003ull;
           bits = (bits | (bits << 7)) & 0x0101010101010101ull;
           *(uint64_t *)dst
-              = *(uint64_t *)dst * 2 + _byteswap_uint64_t (bits);
+              = *(uint64_t *)dst * 2 + byteswap_uint64 (bits);
           dst += 8;
         }
       while (dst < dst_end);
@@ -332,7 +332,7 @@ DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
       do
         {
           // Read the next 2 bytes
-          uint64_t bits = (uint16_t)(_byteswap_ulong (*(uint32_t *)p)
+          uint64_t bits = (uint16_t)(byteswap_ulong (*(uint32_t *)p)
                                        >> (16 - bitpos));
           p += 2;
           // Expand each bit into each uint8_t of the uint64_t.
@@ -340,7 +340,7 @@ DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
           bits = (bits | (bits << 12)) & 0xF000F000F000Full;
           bits = (bits | (bits << 6)) & 0x0303030303030303ull;
           *(uint64_t *)dst
-              = *(uint64_t *)dst * 4 + _byteswap_uint64_t (bits);
+              = *(uint64_t *)dst * 4 + byteswap_uint64 (bits);
           dst += 8;
         }
       while (dst < dst_end);
@@ -352,14 +352,14 @@ DecodeGolombRiceBits (uint8_t *dst, uint32_t size, uint32_t bitcount,
         {
           // Read the next 3 bytes
           uint64_t bits
-              = (_byteswap_ulong (*(uint32_t *)p) >> (8 - bitpos)) & 0xffffff;
+              = (byteswap_ulong (*(uint32_t *)p) >> (8 - bitpos)) & 0xffffff;
           p += 3;
           // Expand each bit into each uint8_t of the uint64_t.
           bits = (bits | (bits << 20)) & 0xFFF00000FFFull;
           bits = (bits | (bits << 10)) & 0x3F003F003F003Full;
           bits = (bits | (bits << 5)) & 0x0707070707070707ull;
           *(uint64_t *)dst
-              = *(uint64_t *)dst * 8 + _byteswap_uint64_t (bits);
+              = *(uint64_t *)dst * 8 + byteswap_uint64 (bits);
           dst += 8;
         }
       while (dst < dst_end);
@@ -663,7 +663,7 @@ Oozle_DecodeMultiArray (const uint8_t *src, const uint8_t *src_end,
   int32_t i;
   for (i = 0; i + 2 <= num_lens; i += 2)
     {
-      bits_f |= _byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
+      bits_f |= byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
       f += (bitpos_f + 7) >> 3;
 
       bits_b |= ((uint32_t *)b)[-1] >> (24 - bitpos_b);
@@ -672,10 +672,10 @@ Oozle_DecodeMultiArray (const uint8_t *src, const uint8_t *src_end,
       int32_t numbits_f = interval_lenlog2[i + 0];
       int32_t numbits_b = interval_lenlog2[i + 1];
 
-      bits_f = _rotl (bits_f | 1, numbits_f);
+      bits_f = rotl (bits_f | 1, numbits_f);
       bitpos_f += numbits_f - 8 * ((bitpos_f + 7) >> 3);
 
-      bits_b = _rotl (bits_b | 1, numbits_b);
+      bits_b = rotl (bits_b | 1, numbits_b);
       bitpos_b += numbits_b - 8 * ((bitpos_b + 7) >> 3);
 
       int32_t value_f = bits_f & bitmasks[numbits_f];
@@ -691,9 +691,9 @@ Oozle_DecodeMultiArray (const uint8_t *src, const uint8_t *src_end,
   // read final one since above loop reads 2
   if (i < num_lens)
     {
-      bits_f |= _byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
+      bits_f |= byteswap_ulong (*(uint32_t *)f) >> (24 - bitpos_f);
       int32_t numbits_f = interval_lenlog2[i];
-      bits_f = _rotl (bits_f | 1, numbits_f);
+      bits_f = rotl (bits_f | 1, numbits_f);
       int32_t value_f = bits_f & bitmasks[numbits_f];
       decoded_intervals[i + 0] = value_f;
     }
@@ -942,7 +942,7 @@ Oozle_DecodeTans (const uint8_t *src, size_t src_size, uint8_t *dst,
   uint32_t L_mask = (1 << L_bits) - 1;
   uint32_t bits_f = *(uint32_t *)src;
   src += 4;
-  uint32_t bits_b = _byteswap_ulong (*(uint32_t *)(src_end - 4));
+  uint32_t bits_b = byteswap_ulong (*(uint32_t *)(src_end - 4));
   src_end -= 4;
   uint32_t bitpos_f = 32, bitpos_b = 32;
 

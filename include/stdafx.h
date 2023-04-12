@@ -12,28 +12,37 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 inline uint16_t
-_byteswap_ushort (uint16_t i)
+byteswap_ushort (uint16_t i)
 {
+  #ifdef __linux__
   uint16_t j;
   j = (i << 8);
   j += (i >> 8);
   return j;
+  #else
+  return _byteswap_ushort ((unsigned short)i);
+  #endif
 }
 
 inline uint32_t
-_byteswap_ulong (uint32_t i)
+byteswap_ulong (uint32_t i)
 {
+  #ifdef __linux__
   uint32_t j;
   j = (i << 24);
   j += (i << 8) & 0x00FF0000;
   j += (i >> 8) & 0x0000FF00;
   j += (i >> 24);
   return j;
+  #else
+  return _byteswap_ulong ((unsigned long)i);
+  #endif
 }
 
 inline uint64_t
-_byteswap_uint64_t (uint64_t i)
+byteswap_uint64 (uint64_t i)
 {
+  #ifdef __linux__
   uint64_t j;
   j = (i << 56);
   j += (i << 40) & 0x00FF000000000000;
@@ -44,6 +53,9 @@ _byteswap_uint64_t (uint64_t i)
   j += (i >> 40) & 0x000000000000FF00;
   j += (i >> 56);
   return j;
+  #else
+  return _byteswap_uint64 ((unsigned long long)i);
+  #endif
 }
 
 #ifdef __linux__
@@ -52,7 +64,7 @@ _byteswap_uint64_t (uint64_t i)
 #endif
 
 __forceinline uint8_t
-_BitScanReverse (uint64_t *const Index, const uint64_t Mask)
+BitScanReverse (uint64_t *const Index, const uint64_t Mask)
 {
   #ifdef __linux__
   *Index = 31 - __builtin_clz (Mask);
@@ -63,7 +75,7 @@ _BitScanReverse (uint64_t *const Index, const uint64_t Mask)
 }
 
 __forceinline uint8_t
-_BitScanForward (uint64_t *const Index, const uint64_t Mask)
+BitScanForward (uint64_t *const Index, const uint64_t Mask)
 {
   #ifdef __linux__
   *Index = __builtin_ctz (Mask);
@@ -74,8 +86,12 @@ _BitScanForward (uint64_t *const Index, const uint64_t Mask)
 }
 
 __forceinline uint32_t
-_rotl (uint32_t value, int32_t shift)
+rotl (uint32_t value, int32_t shift)
 {
+  #ifdef __linux__
   return (((value) << ((int32_t)(shift)))
           | ((value) >> (32 - (int32_t)(shift))));
+  #else
+  return _rotl ((unsigned int)value, (int)shift);
+  #endif
 }

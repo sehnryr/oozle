@@ -194,7 +194,7 @@ static uint32_t __forceinline LznaReadNibble (LznaBitReader *tab,
   c0 = _mm_cmpgt_epi16 (t0, t);
   c1 = _mm_cmpgt_epi16 (t1, t);
 
-  _BitScanForward (&bitindex,
+  BitScanForward (&bitindex,
                    _mm_movemask_epi8 (_mm_packs_epi16 (c0, c1)) | 0x10000);
   start = model->prob[bitindex - 1];
   end = model->prob[bitindex];
@@ -230,7 +230,7 @@ static uint32_t __forceinline LznaRead3bit (LznaBitReader *tab,
   t = _mm_shuffle_epi32 (_mm_unpacklo_epi16 (t, t), 0);
   c0 = _mm_cmpgt_epi16 (t0, t);
 
-  _BitScanForward (&bitindex, _mm_movemask_epi8 (c0) | 0x10000);
+  BitScanForward (&bitindex, _mm_movemask_epi8 (c0) | 0x10000);
   bitindex >>= 1;
   start = model->prob[bitindex - 1];
   end = model->prob[bitindex];

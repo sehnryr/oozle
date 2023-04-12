@@ -115,7 +115,7 @@ BitReader_ReadGamma (BitReader *bits)
   int32_t r;
   if (bits->bits != 0)
     {
-      _BitScanReverse (&bitresult, bits->bits);
+      BitScanReverse (&bitresult, bits->bits);
       n = 31 - bitresult;
     }
   else
@@ -134,7 +134,7 @@ int32_t
 CountLeadingZeros (uint32_t bits)
 {
   uint64_t x;
-  _BitScanReverse (&x, bits);
+  BitScanReverse (&x, bits);
   return 31 - x;
 }
 
@@ -146,7 +146,7 @@ BitReader_ReadGammaX (BitReader *bits, int32_t forced)
   int32_t r;
   if (bits->bits != 0)
     {
-      _BitScanReverse (&bitresult, bits->bits);
+      BitScanReverse (&bitresult, bits->bits);
       int32_t lz = 31 - bitresult;
       assert (lz < 24);
       r = (bits->bits >> (31 - lz - forced)) + ((lz - 1) << forced);
@@ -165,7 +165,7 @@ BitReader_ReadDistance (BitReader *bits, uint32_t v)
   if (v < 0xF0)
     {
       n = (v >> 4) + 4;
-      w = _rotl (bits->bits | 1, n);
+      w = rotl (bits->bits | 1, n);
       bits->bitpos += n;
       m = (2 << n) - 1;
       bits->bits = w & ~m;
@@ -174,7 +174,7 @@ BitReader_ReadDistance (BitReader *bits, uint32_t v)
   else
     {
       n = v - 0xF0 + 4;
-      w = _rotl (bits->bits | 1, n);
+      w = rotl (bits->bits | 1, n);
       bits->bitpos += n;
       m = (2 << n) - 1;
       bits->bits = w & ~m;
@@ -196,7 +196,7 @@ BitReader_ReadDistanceB (BitReader *bits, uint32_t v)
   if (v < 0xF0)
     {
       n = (v >> 4) + 4;
-      w = _rotl (bits->bits | 1, n);
+      w = rotl (bits->bits | 1, n);
       bits->bitpos += n;
       m = (2 << n) - 1;
       bits->bits = w & ~m;
@@ -205,7 +205,7 @@ BitReader_ReadDistanceB (BitReader *bits, uint32_t v)
   else
     {
       n = v - 0xF0 + 4;
-      w = _rotl (bits->bits | 1, n);
+      w = rotl (bits->bits | 1, n);
       bits->bitpos += n;
       m = (2 << n) - 1;
       bits->bits = w & ~m;
@@ -226,7 +226,7 @@ BitReader_ReadLength (BitReader *bits, uint32_t *v)
   uint64_t bitresult;
   int32_t n;
   uint32_t rv;
-  _BitScanReverse (&bitresult, bits->bits);
+  BitScanReverse (&bitresult, bits->bits);
   n = 31 - bitresult;
   if (n > 12)
     return false;
@@ -249,7 +249,7 @@ BitReader_ReadLengthB (BitReader *bits, uint32_t *v)
   uint64_t bitresult;
   int32_t n;
   uint32_t rv;
-  _BitScanReverse (&bitresult, bits->bits);
+  BitScanReverse (&bitresult, bits->bits);
   n = 31 - bitresult;
   if (n > 12)
     return false;
@@ -279,7 +279,7 @@ BitReader_ReadFluff (BitReader *bits, int32_t num_symbols)
 
   x *= 2;
 
-  _BitScanReverse (&y, x - 1);
+  BitScanReverse (&y, x - 1);
   y += 1;
 
   uint32_t v = bits->bits >> (32 - y);
