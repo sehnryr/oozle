@@ -14,6 +14,22 @@ use crate::decoder::Decoder;
 ///
 /// * `Ok(len)` - The length of the decompressed buffer.
 /// * `Err(anyhow::Error)` - The decompression failed.
+///
+/// # Example
+///
+/// ```rust
+/// // Load compressed data from a file (or any other source).
+/// let compressed = include_bytes!("../test_data/compressed");
+///
+/// # let decompressed_size = u32::from_le_bytes(compressed[..4].try_into().unwrap()) as usize;
+/// // Allocate decompressed buffer with the size of the decompressed data.
+/// let mut decompressed = vec![0; decompressed_size];
+///
+/// let result = unsafe {
+///     oozle::decompress(&compressed[4..], &mut decompressed)
+///         .unwrap_or_else(|_| panic!("decompression failed"))
+/// };
+/// ```
 pub unsafe fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize> {
     let mut output_len: usize = output.len();
 
